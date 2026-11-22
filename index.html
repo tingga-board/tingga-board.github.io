@@ -54,7 +54,7 @@
   .banner {
     position: relative;
     display: grid;
-    grid-template-columns: 1fr 236px;
+    grid-template-columns: 1fr;
     gap: 20px;
     align-items: center;
     background: linear-gradient(118deg, #FFFCF4 0%, #FFF4DE 46%, #FDE6C4 100%);
@@ -147,30 +147,21 @@
   .card-head .tag.done { background: #EFF4EA; color: #5F7E52; border-color: #DEE9D5; }
   .card-head .tag.hot  { background: #FDECE3; color: #B45B2E; border-color: #F7D8C7; }
 
-  /* 픽업 목록 */
-  .prow {
-    display: grid; grid-template-columns: 62px 1fr auto;
-    align-items: center; gap: 14px;
-    padding: 11px 0;
-    border-bottom: 1px dashed #EFE4D2;
+  /* ── 개인 보드 섹션 그리드 (복약 · 할 일 · 카드값 · 모은 돈 · 쿠폰 · 날씨) ── */
+  .sections { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; margin-top: 26px; }
+  .sections > .card { margin-bottom: 0; display: flex; flex-direction: column; }
+  .sections.tight { margin-top: 0; }
+  .extra { margin-top: 30px; }
+
+  /* 날씨 */
+  .wnow { display: flex; align-items: baseline; gap: 9px; margin-top: 2px; }
+  .wtemp { font-size: 40px; font-weight: 800; letter-spacing: -1.6px; color: #4A3620; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .wrange { font-size: 17px; font-weight: 700; color: #A08A6C; font-variant-numeric: tabular-nums; }
+  .wcond { font-size: 13.5px; font-weight: 600; color: #7C6647; margin-top: 6px; }
+  .wnext {
+    margin-top: auto; padding-top: 14px; border-top: 1px dashed #EED9B8;
+    font-size: 12px; color: #9A7B4F; line-height: 1.5;
   }
-  .prow:last-of-type { border-bottom: none; }
-  .time {
-    text-align: center; font-weight: 800; font-size: 13.5px; color: #8A5A1E;
-    background: #FBEFD9; border: 1px solid #F3E0BE; border-radius: 11px; padding: 6px 0;
-    font-variant-numeric: tabular-nums;
-  }
-  .who { font-size: 14.5px; font-weight: 700; color: #443322; letter-spacing: -.2px; }
-  .what { font-size: 12px; color: #A4937A; margin-top: 2px; }
-  .amt { font-size: 14.5px; font-weight: 800; color: #4A3620; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .total {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    margin-top: 12px; padding: 13px 16px;
-    background: linear-gradient(100deg, #FFF6E5, #FDEDD4);
-    border: 1px solid #F2DFBE; border-radius: 16px;
-  }
-  .total .lb { font-size: 12.5px; font-weight: 700; color: #9A7539; }
-  .total .num { font-size: 21px; font-weight: 800; color: #7E4E10; letter-spacing: -.6px; font-variant-numeric: tabular-nums; }
 
   /* 할 일 행 */
   .task {
@@ -280,9 +271,6 @@
   .ecnt { font-size: 11.5px; color: #A4937A; font-weight: 700; white-space: nowrap; }
 
   /* ── 직접 체크하는 것 (복약 / 할 일·구매 목록) ───────── */
-  .mylife { margin-top: 26px; }
-  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: stretch; }
-  .pair > .card { margin-bottom: 0; display: flex; flex-direction: column; }
   .card-head.mid { align-items: center; }
   .hicon {
     width: 31px; height: 31px; border-radius: 11px; flex: none;
@@ -299,7 +287,7 @@
     transition: background .18s, border-color .18s;
   }
   .med + .med { margin-top: 10px; }
-  .pair .med { flex: 1 1 auto; min-height: 76px; max-height: 118px; }
+  .sections .med { flex: 1 1 auto; min-height: 76px; max-height: 118px; }
   .med.done { background: linear-gradient(100deg, #F2F7EE, #EAF2E3); border-color: #DDE9D5; }
   .mline { display: flex; align-items: center; gap: 7px; }
   .med input.nm {
@@ -411,7 +399,7 @@
   .list-foot { margin-top: auto; padding-top: 14px; font-size: 11px; color: #B3A48E; line-height: 1.55; }
 
   /* 하단 일정 띠 */
-  .strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 8px; }
+  .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(226px, 1fr)); gap: 16px; margin-top: 22px; }
   .sc {
     background: #FFFDF8; border: 1px solid #EFE2CC; border-radius: 20px;
     padding: 16px 18px;
@@ -428,28 +416,6 @@
   .sc .dt { font-size: 12px; color: #A08A6C; font-weight: 700; font-variant-numeric: tabular-nums; }
   .sc .tt { font-size: 14px; font-weight: 700; color: #443322; margin-top: 9px; letter-spacing: -.2px; }
   .sc .ss { font-size: 11.5px; color: #A4937A; margin-top: 3px; line-height: 1.45; }
-
-  /* 매출 요약 */
-  .stat3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-  .stat3 > div { background: #FDF8EF; border: 1px solid #F1E5D2; border-radius: 14px; padding: 11px 13px; }
-  .sl { font-size: 11.5px; font-weight: 700; color: #8E7C64; }
-  .sv { font-size: 17px; font-weight: 800; color: #4A3620; letter-spacing: -.5px; margin-top: 3px; font-variant-numeric: tabular-nums; }
-  .sv span { font-size: 11.5px; font-weight: 700; color: #A08A6C; margin-left: 2px; }
-  .bars { display: flex; align-items: flex-end; gap: 22px; height: 96px; padding: 0 6px; }
-  .barwrap { flex: 1; display: flex; align-items: flex-end; height: 100%; }
-  .bar {
-    width: 100%; border-radius: 10px 10px 5px 5px;
-    background: linear-gradient(180deg, #F0C680, #E0AB55);
-    position: relative; box-shadow: 0 6px 12px -8px rgba(180,130,60,.8);
-  }
-  .bar.big { background: linear-gradient(180deg, #D9A05A, #B9792C); }
-  .bar em {
-    position: absolute; top: -19px; left: 0; right: 0; text-align: center;
-    font-style: normal; font-size: 10.5px; font-weight: 800; color: #9A7539;
-    font-variant-numeric: tabular-nums;
-  }
-  .bars-x { display: flex; gap: 22px; padding: 8px 6px 0; }
-  .bars-x span { flex: 1; text-align: center; font-size: 10.5px; font-weight: 700; color: #A4937A; }
 
   .foot {
     margin-top: 26px; display: flex; align-items: center; gap: 12px; justify-content: flex-end;
@@ -534,11 +500,11 @@
     .banner { padding: 28px 26px 26px; border-radius: 26px; }
     .banner h1 { font-size: 31px; }
     .board { gap: 20px; }
-    .pair { gap: 20px; }
+    .sections { gap: 20px; }
   }
   @media (max-width: 860px) {
     .banner { grid-template-columns: 1fr; gap: 16px; }
-    .board, .pair { grid-template-columns: 1fr; }
+    .board, .sections { grid-template-columns: 1fr; }
     .strip { grid-template-columns: 1fr 1fr; }
     .weather { text-align: left; padding: 15px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
     .weather .place { width: 100%; }
@@ -560,23 +526,13 @@
     .card-head .tag { font-size: 10.5px; padding: 3px 8px; }
     .col-head h2 { font-size: 14.5px; }
     .col-head .sub { font-size: 11px; }
-    .prow { grid-template-columns: 54px 1fr auto; gap: 10px; }
-    .time { font-size: 12.5px; }
-    .who { font-size: 13.5px; }
-    .amt { font-size: 13px; }
-    .what, .task .d { font-size: 11px; }
+    .task .d { font-size: 11px; }
     .task { grid-template-columns: 30px 1fr auto; gap: 9px; }
     .ico { width: 30px; height: 30px; border-radius: 10px; }
     .ico svg { width: 16px; height: 16px; }
     .task .t { font-size: 13.5px; }
-    .total .num { font-size: 18px; }
-    .stat3 { gap: 7px; }
-    .stat3 > div { padding: 9px 10px; }
-    .sv { font-size: 14.5px; }
-    .sl { font-size: 10.5px; }
-    .bars, .bars-x { gap: 12px; }
-    .bars { height: 84px; }
-    .bar em { font-size: 9.5px; letter-spacing: -.3px; }
+    .wtemp { font-size: 34px; }
+    .wrange { font-size: 15px; }
     .moneytop .big { font-size: 27px; }
     .moneytop .note { width: 100%; margin-left: 0; padding-bottom: 0; }
     .billtop .big { font-size: 27px; }
@@ -600,7 +556,7 @@
     .addbtn { grid-area: add; padding: 10px 14px; }
     .items { max-height: none; }
     .med { padding: 12px 13px; gap: 10px; }
-    .pair .med { min-height: 0; max-height: none; }
+    .sections .med { min-height: 0; max-height: none; }
     .foot { justify-content: space-between; }
     .lock-title { font-size: 21px; }
     .pwfield input { height: 54px; font-size: 16px; }
@@ -782,41 +738,110 @@ function save() {
 /* ── 화면 그리기 ───────────────────────────── */
 var DATA = null;
 
-function bannerHTML(d) {
-  var chips = (d.chips || []).map(function (c) {
-    return '<span class="chip' + (c.tone ? ' ' + c.tone : '') + '">' +
-      '<span class="cd" style="background:' + esc(c.dot) + '"></span>' + c.text + '</span>';
-  }).join("");
+/* ── 개인화 문구 도우미 ───────────────────── */
+/* 예전 매장 브리핑 문구(똑톡·매장·매출·픽업)는 화면에 내보내지 않는다. */
+var STORE_RX = /(똑톡|매장|매출|픽업)/;
+function storeish(v) { return STORE_RX.test(String(v == null ? "" : v)); }
+/* 구분자(기본 ·)로 나눠 매장 관련 조각만 덜어낸다. "<br>"로도 쓸 수 있다. */
+function sane(v, sep) {
+  var s = sep || "·";
+  var parts = String(v == null ? "" : v).split(s);
+  var keep = [];
+  for (var i = 0; i < parts.length; i++) {
+    var p = parts[i].trim();
+    if (p && !storeish(p)) keep.push(p);
+  }
+  var joiner = (s === "·") ? " · " : s;
+  return keep.join(joiner).trim();
+}
+function openItems() {
+  var n = 0;
+  for (var i = 0; i < state.items.length; i++) if (!state.items[i].done) n++;
+  return n;
+}
+function medChip() {
+  var dk = dayKey(new Date()), wk = weekKey(new Date());
+  var dDone = state.meds.daily.doneDate === dk;
+  var wDone = state.meds.weekly.doneWeek === wk;
+  var text = (dDone && wDone) ? "복약 <b>오늘 완료</b>"
+    : (!dDone ? "복약 <b>오늘 남음</b>" : "복약 <b>주 1회 남음</b>");
+  return { cls: (dDone && wDone) ? "" : " warn", text: text, dot: "#C98B3C" };
+}
+function todoChip() {
+  return { cls: "", text: "할 일 <b>" + openItems() + "건</b> 남음", dot: "#7E9C72" };
+}
+function paintChip(id, c) {
+  var el = $(id);
+  if (!el) return;
+  el.className = "chip" + (c.cls || "");
+  el.innerHTML = '<span class="cd" style="background:' + c.dot + '"></span>' + c.text;
+}
+function personalHeadline(d) {
+  var b = d.bills || {};
+  var open = openItems();
+  var bits = [];
+  if (open) bits.push("할 일 <b>" + open + "건</b>");
+  if (b.total) bits.push("카드값 <b>" + esc(b.total) + "원</b>");
+  return bits.length ? bits.join(", ") + "이에요." : "오늘 챙길 것만 모았어요.";
+}
+function personalLede(d) {
   var w = d.weather || {};
+  var todayN = 0;
+  (d.coupons || []).forEach(function (c) { if (c.today) todayN++; });
+  var bits = [];
+  var sky = [w.cond, w.temp, w.range].filter(function (v) { return v; }).join(" ");
+  if (sky && !storeish(sky)) bits.push("오늘 날씨는 " + sky);
+  if (todayN) bits.push("오늘 마감 쿠폰 " + todayN + "건이 있어요");
+  if (!bits.length) return "오늘 챙길 것만 모았어요.";
+  var out = bits.join(". ");
+  if (!/[.!?]$/.test(out)) out += (/[요다까]$/.test(out) ? "." : "예요.");
+  return out;
+}
+
+function bannerHTML(d) {
+  var b = d.bills || {};
+  var todayN = 0;
+  (d.coupons || []).forEach(function (c) { if (c.today) todayN++; });
+  var mc = medChip(), tc = todoChip();
+  var chips = [
+    '<span class="chip' + mc.cls + '" id="chipMed"><span class="cd" style="background:' + mc.dot + '"></span>' + mc.text + '</span>',
+    '<span class="chip' + tc.cls + '" id="chipTodo"><span class="cd" style="background:' + tc.dot + '"></span>' + tc.text + '</span>'
+  ];
+  if (b.total) {
+    chips.push('<span class="chip"><span class="cd" style="background:#B9792C"></span>카드값 <b>' +
+      esc(b.total) + '원</b>' + (b.dueShort ? ' · ' + esc(b.dueShort) : '') + '</span>');
+  }
+  if (todayN) {
+    chips.push('<span class="chip warn"><span class="cd" style="background:#D8693F"></span>오늘 마감 쿠폰 <b>' +
+      todayN + '건</b></span>');
+  }
+  /* 인사말 문구는 데이터에 맡기지 않고 개인 숫자로만 만든다(예전 매장 브리핑 문구 차단). */
+  var head = personalHeadline(d);
+  var lede = personalLede(d);
   return '<section class="banner">' +
     '<div class="banner-top">' +
       '<div class="eyebrow"><span class="sun"></span>' + esc(d.date) + '</div>' +
-      '<h1>좋은 아침이에요.<br>' + d.headline + '</h1>' +
-      '<div class="lede">' + esc(d.lede) + '</div>' +
-      '<div class="chips">' + chips + '</div>' +
-    '</div>' +
-    '<div class="weather">' +
-      '<div class="place">' + esc(w.place) + '</div>' +
-      '<div class="temp">' + esc(w.temp) + ' <span>' + esc(w.range) + '</span></div>' +
-      '<div class="cond">' + esc(w.cond) + '</div>' +
-      '<div class="next">' + w.next + '</div>' +
+      '<h1>좋은 아침이에요.<br>' + head + '</h1>' +
+      '<div class="lede">' + esc(lede) + '</div>' +
+      '<div class="chips">' + chips.join("") + '</div>' +
     '</div>' +
   '</section>';
 }
 
-function pickupsHTML(d) {
-  var rows = (d.pickups || []).map(function (p) {
-    return '<div class="prow">' +
-      '<div class="time">' + esc(p.time) + '</div>' +
-      '<div><div class="who">' + esc(p.who) + '</div>' + (p.what ? '<div class="what">' + esc(p.what) + '</div>' : '') + '</div>' +
-      '<div class="amt">' + esc(p.amt) + '</div>' +
-    '</div>';
-  }).join("");
-  return '<div class="card"><div class="card-head"><h3>오늘 픽업</h3>' +
-    '<span class="tag">' + esc(d.pickupTag) + '</span></div>' +
-    '<div class="pickup">' + rows + '</div>' +
-    '<div class="total"><span class="lb">오늘 픽업 합계 · ' + (d.pickups || []).length + '건</span>' +
-    '<span class="num">' + esc(d.pickupTotal) + '</span></div></div>';
+function weatherHTML(d) {
+  var w = d.weather || {};
+  var next = sane(w.next, "<br>");
+  return '<div class="card">' +
+    '<div class="card-head mid">' +
+      '<span class="hicon"><svg viewBox="0 0 24 24" fill="none" stroke="#C99A45" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M4.4 12H2.2M21.8 12h-2.2M6.6 6.6L5 5M19 19l-1.6-1.6M17.4 6.6L19 5M5 19l1.6-1.6"/></svg></span>' +
+      '<h3>날씨</h3>' +
+      '<span class="tag">' + esc(w.place || "내 지역") + '</span>' +
+    '</div>' +
+    '<div class="wnow"><span class="wtemp">' + esc(w.temp) + '</span>' +
+      '<span class="wrange">' + esc(w.range) + '</span></div>' +
+    '<div class="wcond">' + esc(w.cond) + '</div>' +
+    (next ? '<div class="wnext">' + next + '</div>' : '') +
+  '</div>';
 }
 
 function tasksHTML(title, tag, tagClass, tasks) {
@@ -836,24 +861,6 @@ function tasksHTML(title, tag, tagClass, tasks) {
   return '<div class="card"><div class="card-head"><h3>' + esc(title) + '</h3>' +
     '<span class="tag' + (tagClass ? ' ' + tagClass : '') + '">' + esc(tag) + '</span></div>' +
     rows + '</div>';
-}
-
-function salesHTML(d) {
-  var s = d.sales || {};
-  var stat = (s.stats || []).map(function (x) {
-    return '<div><div class="sl">' + esc(x.label) + '</div><div class="sv">' + esc(x.value) +
-      (x.unit ? '<span>' + esc(x.unit) + '</span>' : '') + '</div></div>';
-  }).join("");
-  var bars = (s.bars || []).map(function (b) {
-    return '<div class="barwrap"><div class="bar' + (b.big ? ' big' : '') + '" style="height:' + b.h + '%">' +
-      '<em>' + esc(b.label) + '</em></div></div>';
-  }).join("");
-  var xs = (s.bars || []).map(function (b) { return '<span>' + esc(b.x) + '</span>'; }).join("");
-  return '<div class="card"><div class="card-head"><h3>오늘 매출 한눈에</h3>' +
-    '<span class="tag done">시간대별</span></div>' +
-    '<div class="stat3">' + stat + '</div>' +
-    '<div class="bars">' + bars + '</div>' +
-    '<div class="bars-x">' + xs + '</div></div>';
 }
 
 function moneyHTML(d) {
@@ -964,41 +971,37 @@ function listHTML() {
 }
 
 function stripHTML(d) {
-  var cards = (d.strip || []).map(function (s) {
+  var list = (d.strip || []).filter(function (s) {
+    return !storeish(s.title) && !storeish(s.sub);
+  });
+  var cards = list.map(function (s) {
     return '<div class="sc"><div class="dh"><span class="dd' + (s.color ? ' ' + s.color : '') + '">' +
       esc(s.dday) + '</span><span class="dt">' + esc(s.date) + '</span></div>' +
       '<div class="tt">' + esc(s.title) + '</div><div class="ss">' + esc(s.sub) + '</div></div>';
   }).join("");
-  return '<div class="strip">' + cards + '</div>';
+  return cards ? '<div class="strip">' + cards + '</div>' : '';
 }
 
+/* ① 복약 체크 → ② 할 일·구매 목록 → ③ 카드값 → ④ 모은 돈 → ⑤ 쿠폰 → ⑥ 날씨 */
 function pageHTML(d) {
+  var wk = d.weekTasks || {};
   return bannerHTML(d) +
-    '<div class="board">' +
-      '<div>' +
-        '<div class="col-head"><span class="dot store"></span><h2>' + esc(d.storeCol.title) + '</h2>' +
-          '<span class="sub">' + esc(d.storeCol.sub) + '</span></div>' +
-        pickupsHTML(d) +
-        tasksHTML(d.storeTasks.title, d.storeTasks.tag, d.storeTasks.tagClass, d.storeTasks.items) +
-        salesHTML(d) +
-      '</div>' +
-      '<div>' +
-        '<div class="col-head"><span class="dot life"></span><h2>' + esc(d.lifeCol.title) + '</h2>' +
-          '<span class="sub">' + esc(d.lifeCol.sub) + '</span></div>' +
-        moneyHTML(d) +
-        billsHTML(d) +
-        couponsHTML(d) +
-        applyHTML(d) +
-        tasksHTML(d.weekTasks.title, d.weekTasks.tag, d.weekTasks.tagClass, d.weekTasks.items) +
-      '</div>' +
+    '<div class="sections">' +
+      medsHTML() +
+      listHTML() +
+      billsHTML(d) +
+      moneyHTML(d) +
+      couponsHTML(d) +
+      weatherHTML(d) +
     '</div>' +
-    '<section class="mylife">' +
-      '<div class="col-head"><span class="dot life"></span><h2>직접 체크하는 것</h2>' +
-        '<span class="sub">복약 · 할 일 · 구매 — 버튼으로 켜고 끄면 이 브라우저에 저장돼요</span></div>' +
-      '<div class="pair">' + medsHTML() + listHTML() + '</div>' +
+    '<section class="extra">' +
+      '<div class="col-head"><span class="dot life"></span><h2>이번 주 챙길 것</h2>' +
+        '<span class="sub">체험단 · 남은 일</span></div>' +
+      '<div class="sections tight">' + applyHTML(d) +
+        tasksHTML(wk.title, wk.tag, wk.tagClass, wk.items) + '</div>' +
     '</section>' +
     stripHTML(d) +
-    '<div class="foot"><span>' + esc(d.foot) + '</span>' +
+    '<div class="foot"><span>' + esc(sane(d.foot, "·")) + '</span>' +
       '<button class="lockbtn" type="button" id="lockBtn">잠그기</button></div>';
 }
 
@@ -1027,6 +1030,7 @@ function renderMeds() {
   var tag = $("medTag");
   tag.textContent = md(dk) + (dDone ? " · 복용 완료" : " · 오늘 남음");
   tag.className = dDone ? "tag done" : "tag hot";
+  paintChip("chipMed", medChip());
 }
 
 /* ── 결제 예정 카드값 ─────────────────────── */
@@ -1148,6 +1152,7 @@ function renderItems() {
   var tag = $("listTag");
   tag.textContent = doneCount + "/" + state.items.length + " 완료";
   tag.className = "tag" + (state.items.length && doneCount === state.items.length ? " done" : "");
+  paintChip("chipTodo", todoChip());
 }
 
 function bindName(input, obj) {
