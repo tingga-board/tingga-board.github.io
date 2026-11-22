@@ -242,12 +242,38 @@
   .shots-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 2px 0 9px; border-bottom: 1px solid #F1E5D2; }
   .shots-head .st { font-size: 13.5px; font-weight: 800; color: #443322; letter-spacing: -.2px; }
   .shots-head .when { font-size: 10.5px; font-weight: 800; color: #A9782F; background: #FBF0DA; border: 1px solid #F2E0BD; border-radius: 999px; padding: 3px 8px; white-space: nowrap; }
-  .prow { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 10px; padding: 8px 0; }
+  .prow { display: grid; grid-template-columns: 48px 60px 1fr; align-items: center; gap: 10px; padding: 8px 0; }
   .prow + .prow { border-top: 1px dashed #EFE4D2; }
   .pdate { font-size: 11.5px; font-weight: 800; color: #9A7539; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .pname { font-size: 13px; font-weight: 700; color: #443322; letter-spacing: -.2px; }
   .prow.today .pdate { color: #B45B2E; }
   .prow.today .pname { color: #A8622A; }
+  .pthumb {
+    width: 48px; height: 48px; padding: 0; border: 1px solid #EFE2CC; border-radius: 12px;
+    overflow: hidden; background: #F6EEDF; cursor: pointer; display: block; flex: none;
+    -webkit-tap-highlight-color: transparent; transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .pthumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .pthumb:active { transform: scale(.95); }
+  .pthumb:focus-visible { outline: 2px solid #B47A3C; outline-offset: 2px; }
+  .pthumb.empty { border-style: dashed; background: #FBF5E8; }
+  .photoview { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 26px 20px; }
+  .photoview[hidden] { display: none; }
+  .pv-back { position: absolute; inset: 0; background: rgba(42,30,18,.6); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  .pv-box {
+    position: relative; margin: 0; z-index: 1; max-width: min(400px, 92vw);
+    background: #FFFDF9; border-radius: 20px; padding: 10px 10px 0;
+    box-shadow: 0 20px 54px rgba(60,40,20,.36);
+  }
+  .pv-box img { display: block; width: 100%; height: auto; max-height: 70vh; object-fit: contain; border-radius: 14px; background: #F6EEDF; }
+  .pv-box figcaption { font-size: 12.5px; font-weight: 700; color: #7A6446; letter-spacing: -.2px; padding: 10px 4px 14px; text-align: center; }
+  .pv-close {
+    position: absolute; top: -13px; right: -13px; width: 36px; height: 36px; padding: 0;
+    border: 0; border-radius: 50%; background: #443322; color: #FFF8EC;
+    font-size: 19px; line-height: 1; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 16px rgba(40,25,10,.3); cursor: pointer;
+  }
+  .pv-close:active { transform: scale(.94); }
 
   /* 쿠폰 */
   .coupon {
@@ -577,7 +603,8 @@
     .shots { gap: 11px; }
     .shots-col { padding: 11px 13px 5px; }
     .shots-head .st { font-size: 13px; }
-    .prow { grid-template-columns: 58px 1fr; gap: 8px; padding: 7px 0; }
+    .prow { grid-template-columns: 44px 54px 1fr; gap: 8px; padding: 7px 0; }
+    .pthumb { width: 44px; height: 44px; border-radius: 11px; }
     .pdate { font-size: 11px; }
     .pname { font-size: 12.5px; }
     .foot { justify-content: space-between; }
@@ -956,27 +983,69 @@ function applyHTML(d) {
 
 /* ── 이번 주 사진 업로드 일정 (비식별 · 잠금 해제 뒤에만 보임) ── */
 var PHOTO_SHORTS = [
-  ["11/23", "월", "응원 레터링 케이크"],
-  ["11/24", "화", "1주년 블랙 리본 케이크"],
-  ["11/25", "수", "결혼 20주년 빨간 장미 케이크"],
-  ["11/26", "목", "칠순·생신상 2종 케이크"],
-  ["11/27", "금", "70 골드바 케이크"],
-  ["11/28", "토", "Happy Birthday 블랙 리본 케이크"],
-  ["11/29", "일", "10주년 일러스트 케이크"],
-  ["11/30", "월", "생일상 케이크"]
+  ["11/23", "월", "응원 레터링 케이크", "c01"],
+  ["11/24", "화", "1주년 블랙 리본 케이크", "c02"],
+  ["11/25", "수", "결혼 20주년 빨간 장미 케이크", "c03"],
+  ["11/26", "목", "칠순·생신상 2종 케이크", "c04"],
+  ["11/27", "금", "70 골드바 케이크", "c05"],
+  ["11/28", "토", "Happy Birthday 블랙 리본 케이크", "c06"],
+  ["11/29", "일", "10주년 일러스트 케이크", "c07"],
+  ["11/30", "월", "생일상 케이크", "c08"]
 ];
 var PHOTO_BLOG = [
-  ["11/23", "월", "39번째 생일 2단 케이크"],
-  ["11/25", "수", "응원 레터링 케이크"]
+  ["11/23", "월", "39번째 생일 2단 케이크", "c09"],
+  ["11/25", "수", "응원 레터링 케이크", "c01"]
 ];
 
 function photoRows(list, today) {
   return list.map(function (r) {
+    var cap = r[0] + ' (' + r[1] + ') · ' + r[2];
+    var thumb = r[3]
+      ? '<button class="pthumb" type="button" data-src="cakes/' + esc(r[3]) + '.jpg"' +
+          ' data-cap="' + esc(cap) + '" aria-label="' + esc(cap + ' 사진 크게 보기') + '">' +
+          '<img src="cakes/' + esc(r[3]) + '.jpg" alt="' + esc(r[2]) + '"' +
+          ' width="48" height="48" loading="lazy" decoding="async"></button>'
+      : '<span class="pthumb empty" aria-hidden="true"></span>';
     return '<div class="prow' + (r[0] === today ? ' today' : '') + '">' +
+      thumb +
       '<div class="pdate">' + esc(r[0]) + ' (' + esc(r[1]) + ')</div>' +
       '<div class="pname">' + esc(r[2]) + '</div></div>';
   }).join("");
 }
+
+function photoViewHTML() {
+  return '<div class="photoview" id="photoView" hidden>' +
+    '<div class="pv-back" data-pv-close="1"></div>' +
+    '<figure class="pv-box">' +
+      '<img id="pvImg" alt="">' +
+      '<figcaption id="pvCap"></figcaption>' +
+      '<button class="pv-close" type="button" id="pvClose" aria-label="사진 닫기">×</button>' +
+    '</figure>' +
+  '</div>';
+}
+
+function openPhotoView(src, cap) {
+  var pv = $("photoView");
+  if (!pv) return;
+  var img = $("pvImg");
+  img.src = src;
+  img.alt = cap || '';
+  $("pvCap").textContent = cap || '';
+  pv.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closePhotoView() {
+  var pv = $("photoView");
+  if (!pv || pv.hidden) return;
+  pv.hidden = true;
+  $("pvImg").removeAttribute("src");
+  document.body.style.overflow = "";
+}
+
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape" || e.key === "Esc") closePhotoView();
+});
 
 function photoHTML() {
   var now = new Date();
@@ -1074,7 +1143,8 @@ function pageHTML(d) {
     '</section>' +
     stripHTML(d) +
     '<div class="foot"><span>' + esc(sane(d.foot, "·")) + '</span>' +
-      '<button class="lockbtn" type="button" id="lockBtn">잠그기</button></div>';
+      '<button class="lockbtn" type="button" id="lockBtn">잠그기</button></div>' +
+    photoViewHTML();
 }
 
 /* ── 복약 ───────────────────────────────── */
@@ -1261,6 +1331,19 @@ function bindPage(d) {
     }
     save(); renderMeds();
   });
+
+  var pv = $("photoView");
+  Array.prototype.forEach.call(document.querySelectorAll(".pthumb[data-src]"), function (b) {
+    b.addEventListener("click", function () {
+      openPhotoView(b.getAttribute("data-src"), b.getAttribute("data-cap"));
+    });
+  });
+  if (pv) {
+    pv.addEventListener("click", function (e) {
+      if (e.target === pv || e.target.getAttribute("data-pv-close")) closePhotoView();
+    });
+    $("pvClose").addEventListener("click", closePhotoView);
+  }
 
   bindName($("dailyName"), state.meds.daily);
   bindName($("weeklyName"), state.meds.weekly);
