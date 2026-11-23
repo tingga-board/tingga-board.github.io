@@ -556,7 +556,8 @@
     if (total <= 0.5) return { glyphs: glyphs, bbox: null };
 
     var thetaHalf = Math.abs(o.curve) / 100 * MAX_ANGLE;
-    var R = thetaHalf > 0.004 ? total / (2 * Math.sin(thetaHalf)) : 0;
+    /* 글자 폭의 합이 호 길이가 되도록 반지름을 잡는다 (textPath와 같은 방식) */
+    var R = thetaHalf > 0.004 ? total / (2 * thetaHalf) : 0;
 
     var bb = { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
     var cursor = -total / 2;
@@ -564,8 +565,7 @@
 
     for (i = 0; i < chars.length; i++) {
       var ch = chars[i], w = ws[i];
-      var u = (cursor + w / 2) / (total / 2);
-      var phi = u * thetaHalf;
+      var phi = R > 0 ? (cursor + w / 2) / R : 0;
       var px, py, rot;
       if (R > 0) {
         px = R * Math.sin(phi);
