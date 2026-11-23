@@ -159,6 +159,35 @@
     border-style: dashed; color: #AC8C6C; font-size: 12px; font-family: inherit !important;
   }
 
+  /* ---------- 기본 글씨체 정리(편집) ---------- */
+  .h-tools { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .h-tools .hint { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .edit-toggle { flex: 0 0 auto; }
+  .edit-toggle.on { background: #C08A5E; border-color: #C08A5E; color: #fff; }
+  .chip .chip-name { display: block; max-width: 100%; }
+  .chip.editing { padding-right: 17px; }
+  .chip .x {
+    position: absolute; top: 3px; right: 4px; width: 19px; height: 19px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: #FBEAE4; border: 1px solid #EED2C6;
+    color: #B0715F; font-size: 10px; line-height: 1;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-style: normal;
+    pointer-events: none;
+  }
+  .chip.arm {
+    border-color: #E3B4A4; background: #FBEAE4; color: #A5482E;
+    box-shadow: inset 0 0 0 1px #E3B4A4;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+    font-size: 12.5px; font-weight: 650; letter-spacing: -.01em;
+  }
+  .edit-note { margin: 8px 0 0; font-size: 10.5px; line-height: 1.5; color: #B29C84; letter-spacing: -.01em; }
+  .restore-row { display: flex; margin-top: 9px; }
+  .restore-link {
+    padding: 5px 1px; font-size: 11.5px; color: #9A8168;
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .restore-link:active { color: #8A5530; }
+
   /* ---------- 내 폰트 목록 (한 줄에 폰트 + 이름수정 + 삭제) ---------- */
   .mine-list { display: flex; flex-direction: column; gap: 7px; }
   .mine-row { display: flex; align-items: stretch; gap: 6px; }
@@ -330,18 +359,28 @@
     </section>
 
     <section class="card">
-      <h2 class="h">글씨체 <span class="hint" id="fontNote" hidden>한글 글자가 없어 기본체로 보여요</span></h2>
-      <div class="gsub">한글</div>
+      <h2 class="h">
+        <span>글씨체</span>
+        <span class="h-tools">
+          <span class="hint" id="fontNote" hidden>한글 글자가 없어 기본체로 보여요</span>
+          <button class="mini edit-toggle" id="editDefaults" type="button" aria-pressed="false">편집</button>
+        </span>
+      </h2>
+      <div class="gsub" id="koLabel">한글</div>
       <div class="grid" id="gridKo"></div>
-      <div class="gsub">영문</div>
+      <div class="gsub" id="enLabel">영문</div>
       <div class="grid" id="gridEn"></div>
+      <p class="edit-note" id="editNote" hidden>지울 글씨체를 누르면 '삭제?'로 바뀌어요. 한 번 더 누르면 목록에서 사라지고, 아래에서 언제든 되돌릴 수 있어요.</p>
       <div class="gsub" id="mineLabel" hidden>내 폰트</div>
       <div class="mine-list" id="mineList" hidden></div>
       <div class="gsub">직접 불러오기</div>
       <div class="grid">
         <button class="chip add" id="addFont" type="button">+ 폰트 파일</button>
       </div>
-      <p class="note">.ttf · .otf · .woff 파일을 고르면 바로 적용돼요. 불러온 폰트는 이 기기(브라우저)에 저장되어 새로 열어도 유지돼요. ✏️ 로 이름을 바꾸고 ✕ 로 지울 수 있어요.</p>
+      <div class="restore-row">
+        <button class="restore-link" id="restoreDefaults" type="button" hidden>기본 폰트 다시 불러오기</button>
+      </div>
+      <p class="note">.ttf · .otf · .woff 파일을 고르면 바로 적용돼요. 불러온 폰트는 이 기기(브라우저)에 저장되어 새로 열어도 유지돼요. ✏️ 로 이름을 바꾸고 ✕ 로 지울 수 있어요. 기본 글씨체는 '편집'을 눌러 정리할 수 있어요.</p>
       <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden>
     </section>
 
@@ -486,6 +525,46 @@
 
   var customFonts = [];
 
+  /* ================= 기본 글씨체 숨김 목록 ================= */
+  var HIDDEN_KEY = 'buttertree-lettering-hidden-defaults';
+  var hiddenDefaults = [];
+
+  function loadHiddenDefaults() {
+    try {
+      var raw = window.localStorage.getItem(HIDDEN_KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      if (!arr || typeof arr.length !== 'number') return [];
+      var known = {}, out = [];
+      for (var i = 0; i < FONTS.length; i++) known[FONTS[i].id] = true;
+      for (var j = 0; j < arr.length; j++) {
+        var id = String(arr[j] == null ? '' : arr[j]);
+        if (known[id] && out.indexOf(id) < 0) out.push(id);
+      }
+      return out;
+    } catch (e) { return []; }
+  }
+
+  function saveHiddenDefaults() {
+    try {
+      if (hiddenDefaults.length) window.localStorage.setItem(HIDDEN_KEY, JSON.stringify(hiddenDefaults));
+      else window.localStorage.removeItem(HIDDEN_KEY);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function isHiddenDefault(id) { return hiddenDefaults.indexOf(id) >= 0; }
+
+  function visibleDefaults(group) {
+    var out = [];
+    for (var i = 0; i < FONTS.length; i++) {
+      if (isHiddenDefault(FONTS[i].id)) continue;
+      if (group && FONTS[i].group !== group) continue;
+      out.push(FONTS[i]);
+    }
+    return out;
+  }
+
   /* ================= DOM ================= */
   function $(id) { return document.getElementById(id); }
   var canvas = $('stage');
@@ -513,6 +592,7 @@
   }
 
   function ensureFamily(family) {
+    if (!family) return;
     if (familyState[family]) return;
     familyState[family] = 'injected';
     var link = document.createElement('link');
@@ -543,22 +623,39 @@
     document.head.appendChild(link);
   }
 
-  function allFonts() { return FONTS.concat(customFonts); }
+  /* 숨어 있는 기본 글씨체는 찾지 않고, 남은 폰트가 없을 때만 기본 산세리프로 내려간다 */
+  var FALLBACK_FONT = { id: '', name: '기본체', family: '', ko: true, group: 'basic' };
+
+  function allFonts() { return visibleDefaults().concat(customFonts); }
 
   function fontById(id) {
-    for (var i = 0; i < FONTS.length; i++) if (FONTS[i].id === id) return FONTS[i];
+    if (!id) return null;
+    for (var i = 0; i < FONTS.length; i++) {
+      if (FONTS[i].id === id) return isHiddenDefault(id) ? null : FONTS[i];
+    }
     for (var j = 0; j < customFonts.length; j++) if (customFonts[j].id === id) return customFonts[j];
-    return FONTS[0];
+    return null;
   }
 
-  function currentFont() { return fontById(state.fontId); }
+  /* 내 폰트가 있으면 그 첫 번째, 없으면 남은 기본 글씨체의 첫 번째 */
+  function firstAvailableFont() {
+    if (customFonts.length) return customFonts[0];
+    var left = visibleDefaults();
+    return left.length ? left[0] : null;
+  }
+
+  function currentFont() {
+    return fontById(state.fontId) || firstAvailableFont() || FALLBACK_FONT;
+  }
 
   function cssFamily(family) {
+    if (!family) return '"Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
     return '"' + family + '", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
   }
 
   var fontLoadSeq = 0;
   function preloadFont(family, text) {
+    if (!family) return Promise.resolve();
     if (!document.fonts || !document.fonts.load) return Promise.resolve();
     var sample = (text || 'A') + ' Aa 가힣 0123';
     var p;
@@ -809,20 +906,40 @@
   }
 
   /* ================= UI 만들기 ================= */
+  var editMode = false;
+  var chipArmTimer = 0;
+
   function makeChip(font) {
     var b = document.createElement('button');
     b.type = 'button';
-    b.className = 'chip';
+    b.className = 'chip' + (editMode ? ' editing' : '');
     b.dataset.id = font.id;
-    b.textContent = font.name;
     b.style.setProperty('--f', cssFamily(font.family));
+
+    var nm = document.createElement('span');
+    nm.className = 'chip-name';
+    nm.textContent = font.name;
+    b.appendChild(nm);
+
     if (font.custom) {
       var tag = document.createElement('span');
       tag.className = 'mine';
       tag.textContent = '내 폰트';
       b.appendChild(tag);
     }
-    b.addEventListener('click', function () { selectFont(font.id); });
+
+    if (editMode) {
+      var x = document.createElement('span');
+      x.className = 'x';
+      x.textContent = '✕';
+      x.setAttribute('aria-hidden', 'true');
+      b.appendChild(x);
+      b.dataset.label = font.name + ' 지우기';
+      b.setAttribute('aria-label', b.dataset.label);
+      b.addEventListener('click', function () { armChipDelete(b, font.id); });
+    } else {
+      b.addEventListener('click', function () { selectFont(font.id); });
+    }
     return b;
   }
 
@@ -830,12 +947,103 @@
     var ko = $('gridKo'), en = $('gridEn');
     ko.textContent = '';
     en.textContent = '';
+    var koN = 0, enN = 0;
     for (var i = 0; i < FONTS.length; i++) {
-      (FONTS[i].group === 'ko' ? ko : en).appendChild(makeChip(FONTS[i]));
+      if (isHiddenDefault(FONTS[i].id)) continue;
+      if (FONTS[i].group === 'ko') { ko.appendChild(makeChip(FONTS[i])); koN++; }
+      else { en.appendChild(makeChip(FONTS[i])); enN++; }
     }
+    $('koLabel').hidden = !koN;
+    ko.hidden = !koN;
+    $('enLabel').hidden = !enN;
+    en.hidden = !enN;
     renderMineList();
     observeChips();
     syncChips();
+    syncEditUI();
+  }
+
+  function syncEditUI() {
+    var btn = $('editDefaults');
+    var canEdit = visibleDefaults().length > 0;
+    btn.textContent = editMode ? '완료' : '편집';
+    btn.classList.toggle('on', editMode);
+    btn.setAttribute('aria-pressed', editMode ? 'true' : 'false');
+    btn.hidden = !canEdit;
+    $('editNote').hidden = !editMode;
+    $('restoreDefaults').hidden = !hiddenDefaults.length;
+  }
+
+  function disarmChips() {
+    clearTimeout(chipArmTimer);
+    var armed = document.querySelectorAll('.chip.arm');
+    for (var i = 0; i < armed.length; i++) {
+      armed[i].classList.remove('arm');
+      var nm = armed[i].querySelector('.chip-name');
+      if (nm && armed[i].dataset.orig) nm.textContent = armed[i].dataset.orig;
+      if (armed[i].dataset.label) armed[i].setAttribute('aria-label', armed[i].dataset.label);
+    }
+  }
+
+  /* 첫 탭은 '삭제?' 확인 대기, 같은 칩을 한 번 더 누르면 숨김 (실수 방지) */
+  function armChipDelete(chip, id) {
+    if (chip.classList.contains('arm')) {
+      hideDefaultFont(id);
+      return;
+    }
+    disarmChips();
+    var nm = chip.querySelector('.chip-name');
+    chip.dataset.orig = nm ? nm.textContent : '';
+    chip.classList.add('arm');
+    if (nm) nm.textContent = '삭제?';
+    chip.setAttribute('aria-label', '한 번 더 누르면 목록에서 지워요');
+    chipArmTimer = setTimeout(disarmChips, 3500);
+  }
+
+  function hideDefaultFont(id) {
+    var target = fontById(id);
+    if (!target || target.custom) return;
+    disarmChips();
+    hiddenDefaults.push(id);
+    var stored = saveHiddenDefaults();
+    var wasSelected = state.fontId === id;
+    if (wasSelected) {
+      var next = firstAvailableFont();
+      state.fontId = next ? next.id : FALLBACK_FONT.id;
+      if (next && !next.custom) ensureFamily(next.family);
+    }
+    if (!visibleDefaults().length) editMode = false;
+    renderFontGrids();
+    draw();
+    if (wasSelected) preloadFont(currentFont().family, state.text);
+    toast(stored
+      ? (wasSelected ? '쓰던 글씨체를 정리하고 다음 글씨체로 바꿨어요.' : '글씨체를 정리했어요. 아래에서 다시 불러올 수 있어요.')
+      : '이번 화면에서만 정리했어요. 저장 기능을 쓸 수 없어요.');
+  }
+
+  function restoreDefaultFonts() {
+    if (!hiddenDefaults.length) return;
+    disarmChips();
+    hiddenDefaults = [];
+    var stored = saveHiddenDefaults();
+    if (!fontById(state.fontId)) {
+      var pick = fontById(DEFAULT.fontId) || firstAvailableFont();
+      if (pick) {
+        state.fontId = pick.id;
+        if (!pick.custom) ensureFamily(pick.family);
+      }
+    }
+    renderFontGrids();
+    draw();
+    preloadFont(currentFont().family, state.text);
+    toast(stored ? '기본 글씨체를 모두 되돌렸어요.' : '이번 화면에서만 되돌렸어요. 저장 기능을 쓸 수 없어요.');
+  }
+
+  function toggleEditMode() {
+    if (!visibleDefaults().length) { editMode = false; renderFontGrids(); return; }
+    editMode = !editMode;
+    disarmChips();
+    renderFontGrids();
   }
 
   function syncChips() {
@@ -944,8 +1152,9 @@
   }
 
   function selectFont(id) {
-    state.fontId = id;
     var f = fontById(id);
+    if (!f) return;
+    state.fontId = id;
     if (!f.custom) ensureFamily(f.family);
     syncChips();
     draw();
@@ -1296,12 +1505,13 @@
       try { document.fonts['delete'](item.face); } catch (e) {}
     }
     if (wasSelected) {
-      state.fontId = DEFAULT.fontId;
-      ensureFamily(fontById(state.fontId).family);
+      var next = fontById(DEFAULT.fontId) || firstAvailableFont();
+      state.fontId = next ? next.id : FALLBACK_FONT.id;
+      if (next && !next.custom) ensureFamily(next.family);
     }
     renderFontGrids();
     draw();
-    if (wasSelected) preloadFont(fontById(state.fontId).family, state.text);
+    if (wasSelected) preloadFont(currentFont().family, state.text);
     idbDeleteFont(id).then(function () {
       toast('폰트를 지웠어요.');
     }, function () {
@@ -1480,12 +1690,19 @@
       this.value = '';
     });
 
+    $('editDefaults').addEventListener('click', toggleEditMode);
+    $('restoreDefaults').addEventListener('click', restoreDefaultFonts);
+
     $('saveTop').addEventListener('click', savePNG);
     $('saveBottom').addEventListener('click', savePNG);
 
     $('reset').addEventListener('click', function () {
+      editMode = false;
+      disarmChips();
       state.text = DEFAULT.text;
-      state.fontId = DEFAULT.fontId;
+      var start = fontById(DEFAULT.fontId) || firstAvailableFont();
+      state.fontId = start ? start.id : FALLBACK_FONT.id;
+      if (start && !start.custom) ensureFamily(start.family);
       state.size = DEFAULT.size;
       state.spacing = DEFAULT.spacing;
       state.curve = DEFAULT.curve;
@@ -1496,7 +1713,7 @@
       state.guide = DEFAULT.guide;
       syncInputs();
       syncLabels();
-      syncChips();
+      renderFontGrids();
       renderSwatches();
       canvas.classList.toggle('transparent', !state.bg);
       draw();
@@ -1518,7 +1735,10 @@
 
   /* ================= 시작 ================= */
   function init() {
-    ensureFamily(fontById(state.fontId).family);
+    hiddenDefaults = loadHiddenDefaults();
+    var start = fontById(state.fontId) || fontById(DEFAULT.fontId) || firstAvailableFont();
+    state.fontId = start ? start.id : FALLBACK_FONT.id;
+    ensureFamily(currentFont().family);
     renderFontGrids();
     renderSwatches();
     syncInputs();
