@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="레터링">
+<meta name="theme-color" content="#FBF4E8">
+<meta name="format-detection" content="telephone=no">
+<meta name="robots" content="noindex, nofollow">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>레터링 미리보기</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { height: 100%; background: #F7EEDF; }
+  body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR",
+                 "Malgun Gothic", "맑은 고딕", sans-serif;
+    color: #3E3227;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    background: #FBF4E8;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(700px 420px at 8% -10%, #FFF6E2 0%, rgba(255,246,226,0) 62%),
+      radial-gradient(620px 420px at 100% 2%, #FBE8E0 0%, rgba(251,232,224,0) 60%);
+  }
+  .app {
+    position: relative; display: flex; flex-direction: column;
+    height: 100vh; height: 100dvh;
+    max-width: 520px; margin: 0 auto;
+  }
+  @media (min-width: 600px) {
+    body { display: flex; align-items: center; justify-content: center; }
+    .app {
+      height: min(940px, 95vh);
+      border-radius: 30px; overflow: hidden;
+      box-shadow: 0 26px 70px rgba(120, 90, 60, .18), 0 0 0 1px rgba(160, 130, 100, .12);
+    }
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+
+  /* ---------- 상단 ---------- */
+  .top {
+    flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: calc(env(safe-area-inset-top) + 12px) 18px 6px;
+  }
+  .brand h1 { margin: 0; font-size: 16.5px; font-weight: 700; letter-spacing: -.01em; }
+  .brand p { margin: 3px 0 0; font-size: 11.5px; color: #9C8B77; letter-spacing: -.01em; }
+  .save {
+    padding: 9px 16px; border-radius: 999px; color: #fff; font-size: 13.5px; font-weight: 650;
+    background: linear-gradient(180deg, #C48E62, #A9703F);
+    box-shadow: 0 4px 12px rgba(150, 100, 60, .26);
+    transition: transform .12s ease, box-shadow .12s ease;
+    white-space: nowrap;
+  }
+  .save:active { transform: translateY(1px); box-shadow: 0 2px 8px rgba(150, 100, 60, .24); }
+
+  /* ---------- 미리보기 ---------- */
+  .stage-wrap {
+    position: relative; flex: 1 1 auto; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+    padding: 4px 16px 10px;
+  }
+  .stage-inner {
+    position: relative; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #stage {
+    display: block; border-radius: 24px; background: #fff;
+    box-shadow: 0 10px 26px rgba(140, 105, 70, .13), inset 0 0 0 1px rgba(180, 150, 120, .10);
+  }
+  #stage.transparent {
+    background: repeating-conic-gradient(#EFE7DA 0 25%, #FFFDF8 0 50%) 50% / 14px 14px;
+  }
+  .empty {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    font-size: 13.5px; color: #B6A18B; pointer-events: none; letter-spacing: -.01em;
+  }
+  .fit-badge {
+    position: absolute; right: 22px; bottom: 16px;
+    font-size: 10.5px; padding: 4px 9px; border-radius: 999px;
+    background: rgba(255, 255, 255, .88); color: #9A8168;
+    box-shadow: 0 2px 8px rgba(140, 105, 70, .12);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    pointer-events: none; font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- 조절 시트 ---------- */
+  .sheet {
+    flex: 0 0 auto; max-height: 54dvh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    background: #FFFCF6;
+    border-radius: 26px 26px 0 0;
+    border-top: 1px solid rgba(200, 170, 140, .20);
+    box-shadow: 0 -8px 28px rgba(140, 105, 70, .10);
+    padding: 4px 0 calc(env(safe-area-inset-bottom) + 16px);
+  }
+  .card { padding: 13px 18px 15px; border-bottom: 1px solid #F3E9DB; }
+  .card:last-child { border-bottom: 0; }
+  .h {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    margin: 0 0 9px; font-size: 11.5px; font-weight: 700;
+    letter-spacing: .05em; color: #A48E74;
+  }
+  .note { margin: 9px 0 0; font-size: 11px; line-height: 1.55; color: #A8967F; letter-spacing: -.01em; }
+  .hint { font-weight: 600; letter-spacing: 0; font-size: 10.5px; color: #C08767; }
+
+  textarea {
+    display: block; width: 100%; min-height: 54px; padding: 11px 13px;
+    border: 1px solid #EDE0CE; border-radius: 14px; background: #FFFDF9;
+    font-family: inherit; font-size: 16px; line-height: 1.45; color: #3E3227;
+    resize: none; outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  textarea:focus { border-color: #DCBC8E; box-shadow: 0 0 0 3px rgba(220, 188, 142, .18); }
+  textarea::placeholder { color: #C3B3A0; }
+
+  .examples {
+    display: flex; gap: 7px; overflow-x: auto; margin-top: 9px; padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .examples::-webkit-scrollbar { display: none; }
+  .ex {
+    flex: 0 0 auto; padding: 6px 11px; border-radius: 999px;
+    border: 1px solid #EFE2D0; background: #FFFDF9;
+    font-size: 12.5px; color: #8C7660; white-space: nowrap;
+  }
+  .ex:active { background: #FBF1E2; }
+
+  .gsub { margin: 12px 0 6px; font-size: 10.5px; letter-spacing: .04em; color: #B29C84; }
+  .gsub:first-of-type { margin-top: 0; }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+  .chip {
+    position: relative; display: flex; align-items: center; justify-content: center;
+    min-height: 46px; padding: 8px 5px; border-radius: 14px;
+    border: 1px solid #EFE3D1; background: #FFFDF9;
+    font-size: 13.5px; line-height: 1.15; letter-spacing: -.02em; color: #4A3B2C;
+    text-align: center; word-break: keep-all; overflow-wrap: anywhere;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .chip.vis { font-family: var(--f); }
+  .chip.on {
+    border-color: #C08A5E; background: #FFF4E4; color: #8A5530;
+    box-shadow: inset 0 0 0 1px #C08A5E;
+  }
+  .chip .mine {
+    position: absolute; top: 4px; right: 6px; font-size: 8px; letter-spacing: 0;
+    color: #B4875F; font-family: -apple-system, sans-serif;
+  }
+  .chip.add {
+    grid-column: 1 / -1;
+    border-style: dashed; color: #AC8C6C; font-size: 12px; font-family: inherit !important;
+  }
+
+  .ctrl { margin-bottom: 13px; }
+  .ctrl:last-child { margin-bottom: 0; }
+  .ctrl-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
+  .ctrl-label { font-size: 13px; font-weight: 600; color: #6C5B49; letter-spacing: -.01em; }
+  .ctrl-val { font-size: 12px; color: #A28C74; font-variant-numeric: tabular-nums; }
+  .mini {
+    font-size: 11px; color: #A9703F; padding: 4px 9px; border-radius: 999px;
+    background: #FBF0E1; border: 1px solid #F0DFC8; white-space: nowrap;
+  }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    display: block; width: 100%; height: 26px; margin: 1px 0 0; background: transparent;
+  }
+  input[type=range]::-webkit-slider-runnable-track {
+    height: 6px; border-radius: 999px; border: 0;
+    background: linear-gradient(90deg, #D9A77E var(--p, 50%), #EFE4D4 var(--p, 50%));
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 23px; height: 23px; margin-top: -8.5px;
+    border-radius: 50%; background: #fff; border: 2px solid #BE8558;
+    box-shadow: 0 2px 6px rgba(140, 100, 60, .24);
+  }
+  input[type=range]::-moz-range-track {
+    height: 6px; border-radius: 999px; background: #EFE4D4;
+  }
+  input[type=range]::-moz-range-progress {
+    height: 6px; border-radius: 999px; background: #D9A77E;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 21px; height: 21px; border-radius: 50%; background: #fff;
+    border: 2px solid #BE8558; box-shadow: 0 2px 6px rgba(140, 100, 60, .24);
+  }
+  .scale {
+    display: flex; justify-content: space-between; margin-top: -3px;
+    font-size: 10px; color: #BCA894; font-variant-numeric: tabular-nums;
+  }
+
+  .row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .mini-note { margin-top: 2px; font-size: 10.5px; color: #B29C84; letter-spacing: -.01em; }
+  .seg { display: flex; gap: 2px; padding: 3px; background: #F5ECDE; border-radius: 11px; }
+  .seg button { padding: 6px 11px; border-radius: 9px; font-size: 12px; color: #8C7660; }
+  .seg button.on {
+    background: #fff; color: #5C4834; font-weight: 600;
+    box-shadow: 0 1px 3px rgba(140, 105, 70, .16);
+  }
+
+  .sw-row { display: flex; flex-wrap: wrap; gap: 9px; }
+  .sw {
+    width: 29px; height: 29px; border-radius: 50%; position: relative;
+    border: 1px solid rgba(120, 95, 70, .16);
+    box-shadow: 0 1px 2px rgba(120, 95, 70, .10);
+  }
+  .sw.on::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 50%;
+    border: 2px solid #B9805A;
+  }
+  .sw.trans {
+    background: repeating-conic-gradient(#E9E2D6 0 25%, #fff 0 50%) 50% / 9px 9px;
+  }
+  .sw-label { margin: 0 0 7px; font-size: 11.5px; color: #8C7660; }
+  .sw-label + .sw-row { margin-bottom: 12px; }
+
+  .switch {
+    flex: 0 0 auto; position: relative; width: 46px; height: 27px;
+    border-radius: 999px; background: #E7DCCB; transition: background .18s ease;
+  }
+  .switch span {
+    position: absolute; top: 2.5px; left: 2.5px; width: 22px; height: 22px;
+    border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .18);
+    transition: transform .18s ease;
+  }
+  .switch[aria-checked="true"] { background: #C08A5E; }
+  .switch[aria-checked="true"] span { transform: translateX(19px); }
+
+  .actions { display: flex; gap: 9px; }
+  .actions .btn {
+    flex: 1; padding: 12px 10px; border-radius: 14px; font-size: 13.5px; font-weight: 650;
+    text-align: center;
+  }
+  .btn.line { border: 1px solid #E7D8C4; background: #FFFDF9; color: #8C7660; }
+  .btn.solid { background: linear-gradient(180deg, #C48E62, #A9703F); color: #fff; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 96px);
+    transform: translate(-50%, 10px); z-index: 50;
+    max-width: 80vw; padding: 10px 16px; border-radius: 999px;
+    background: rgba(62, 47, 35, .93); color: #fff; font-size: 12.5px; line-height: 1.4;
+    text-align: center; opacity: 0; pointer-events: none;
+    transition: opacity .22s ease, transform .22s ease;
+  }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">
+      <h1>레터링 미리보기</h1>
+      <p>케이크 문구를 글씨체·곡률까지 바로 확인</p>
+    </div>
+    <button class="save" id="saveTop" type="button">PNG 저장</button>
+  </div>
+
+  <div class="stage-wrap" id="stageWrap">
+    <div class="stage-inner" id="stageInner">
+      <canvas id="stage" width="320" height="320" aria-label="레터링 미리보기"></canvas>
+      <div class="empty" id="emptyHint">문구를 입력해 주세요</div>
+    </div>
+    <div class="fit-badge" id="fitBadge" hidden></div>
+  </div>
+
+  <div class="sheet" id="sheet">
+    <section class="card">
+      <h2 class="h">문구</h2>
+      <textarea id="text" rows="2" maxlength="140" spellcheck="false" placeholder="예: 생일 축하해">생일 축하해</textarea>
+      <div class="examples" id="examples">
+        <button class="ex" type="button">Happy Birthday</button>
+        <button class="ex" type="button">생일 축하해</button>
+        <button class="ex" type="button">사랑해</button>
+        <button class="ex" type="button">Merry Christmas</button>
+        <button class="ex" type="button">졸업 축하해</button>
+        <button class="ex" type="button">우리 딸 첫돌</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="h">글씨체 <span class="hint" id="fontNote" hidden>한글 글자가 없어 기본체로 보여요</span></h2>
+      <div class="gsub">한글</div>
+      <div class="grid" id="gridKo"></div>
+      <div class="gsub">영문</div>
+      <div class="grid" id="gridEn"></div>
+      <div class="gsub" id="mineLabel" hidden>내 폰트</div>
+      <div class="grid" id="gridMine" hidden></div>
+      <div class="gsub">직접 불러오기</div>
+      <div class="grid">
+        <button class="chip add" id="addFont" type="button">+ 폰트 파일</button>
+      </div>
+      <p class="note">.ttf · .otf · .woff 파일을 고르면 바로 적용돼요. 지금 화면에서만 쓰이고, 새로 열면 다시 불러와야 해요.</p>
+      <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden>
+    </section>
+
+    <section class="card">
+      <h2 class="h">크기와 모양</h2>
+
+      <div class="ctrl">
+        <div class="ctrl-head"><span class="ctrl-label">글씨 크기</span><span class="ctrl-val" id="sizeVal">50px</span></div>
+        <input type="range" id="size" min="16" max="120" step="1" value="50" aria-label="글씨 크기">
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-head"><span class="ctrl-label">자간</span><span class="ctrl-val" id="spacingVal">0</span></div>
+        <input type="range" id="spacing" min="-8" max="30" step="0.5" value="0" aria-label="자간">
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-head">
+          <span class="ctrl-label">곡률</span>
+          <span class="ctrl-val" id="curveVal">아치 +22</span>
+        </div>
+        <input type="range" id="curve" min="-100" max="100" step="1" value="22" aria-label="곡률">
+        <div class="scale"><span>U자 -100</span><span>직선 0</span><span>아치 +100</span></div>
+        <button class="mini" id="curveReset" type="button" style="margin-top:7px">직선으로 되돌리기</button>
+      </div>
+
+      <div class="ctrl">
+        <div class="ctrl-head"><span class="ctrl-label">줄 간격</span><span class="ctrl-val" id="lhVal">1.15</span></div>
+        <input type="range" id="lineHeight" min="0.8" max="2.2" step="0.02" value="1.15" aria-label="줄 간격">
+      </div>
+
+      <div class="row-between">
+        <span class="ctrl-label">여러 줄 정렬</span>
+        <div class="seg" id="align">
+          <button type="button" data-v="left">왼쪽</button>
+          <button type="button" data-v="center" class="on">가운데</button>
+          <button type="button" data-v="right">오른쪽</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="h">색상</h2>
+      <p class="sw-label">글자색</p>
+      <div class="sw-row" id="colorRow"></div>
+      <p class="sw-label">케이크 바탕</p>
+      <div class="sw-row" id="bgRow"></div>
+
+      <div class="row-between" style="margin-top:15px">
+        <div>
+          <div class="ctrl-label">원형 가이드</div>
+          <div class="mini-note">케이크 판 크기 확인용 · 저장 이미지에는 빠져요</div>
+        </div>
+        <button class="switch" id="guide" type="button" role="switch" aria-checked="true" aria-label="원형 가이드"><span></span></button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="actions">
+        <button class="btn line" id="reset" type="button">처음 상태로</button>
+        <button class="btn solid" id="saveBottom" type="button">PNG 저장</button>
+      </div>
+      <p class="note">저장하면 1080×1080 PNG로 만들어져요. 아이폰에서 새 창에 이미지가 열리면 길게 눌러 '사진에 추가'를 눌러주세요.</p>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================= 폰트 목록 ================= */
+  var FONTS = [
+    { id: 'jua',        name: '주아',        family: 'Jua',                ko: true,  group: 'ko' },
+    { id: 'gaegu',      name: '개구',        family: 'Gaegu',              ko: true,  group: 'ko' },
+    { id: 'nanumpen',   name: '나눔 펜',     family: 'Nanum Pen Script',   ko: true,  group: 'ko' },
+    { id: 'nanumbrush', name: '나눔 붓',     family: 'Nanum Brush Script', ko: true,  group: 'ko' },
+    { id: 'himelody',   name: '하이멜로디',  family: 'Hi Melody',          ko: true,  group: 'ko' },
+    { id: 'dongle',     name: '동글',        family: 'Dongle',             ko: true,  group: 'ko' },
+    { id: 'poorman',    name: '푸어스토리',  family: 'Poor Story',         ko: true,  group: 'ko' },
+    { id: 'singleday',  name: '싱글데이',    family: 'Single Day',         ko: true,  group: 'ko' },
+    { id: 'blackhan',   name: '검은고딕',    family: 'Black Han Sans',     ko: true,  group: 'ko' },
+    { id: 'bagelfat',   name: '베이글팻',    family: 'Bagel Fat One',      ko: true,  group: 'ko' },
+    { id: 'gowunbatang',name: '고운바탕',    family: 'Gowun Batang',       ko: true,  group: 'ko' },
+    { id: 'songmyung',  name: '송명',        family: 'Song Myung',         ko: true,  group: 'ko' },
+    { id: 'greatvibes', name: '그레이트 바이브스', family: 'Great Vibes',  ko: false, group: 'en' },
+    { id: 'dancing',    name: '댄싱 스크립트', family: 'Dancing Script',   ko: false, group: 'en' },
+    { id: 'pacifico',   name: '파시피코',    family: 'Pacifico',           ko: false, group: 'en' },
+    { id: 'caveat',     name: '카브',        family: 'Caveat',             ko: false, group: 'en' },
+    { id: 'sacramento', name: '새크라멘토',  family: 'Sacramento',         ko: false, group: 'en' },
+    { id: 'playfair',   name: '플레이페어',  family: 'Playfair Display',   ko: false, group: 'en' }
+  ];
+
+  var COLOR_SWATCHES = [
+    { name: '초코',   v: '#4A3326' },
+    { name: '화이트', v: '#FFFFFF' },
+    { name: '핑크',   v: '#E97595' },
+    { name: '로즈',   v: '#C2455F' },
+    { name: '레드',   v: '#D8402F' },
+    { name: '골드',   v: '#C29A4E' },
+    { name: '세이지', v: '#6E8F6F' },
+    { name: '민트',   v: '#4EA69B' },
+    { name: '하늘',   v: '#5E8FC0' },
+    { name: '네이비', v: '#33455F' },
+    { name: '라벤더', v: '#9C86C4' },
+    { name: '블랙',   v: '#2A2521' }
+  ];
+
+  var BG_SWATCHES = [
+    { name: '크림',     v: '#FFF6E3' },
+    { name: '화이트',   v: '#FFFFFF' },
+    { name: '연핑크',   v: '#FDE9EE' },
+    { name: '연하늘',   v: '#E7F1FA' },
+    { name: '연두',     v: '#EDF5E3' },
+    { name: '레몬',     v: '#FBF2C9' },
+    { name: '베이지',   v: '#F3E3CB' },
+    { name: '초코',     v: '#8A6047' },
+    { name: '투명',     v: null }
+  ];
+
+  var MAX_ANGLE = 72 * Math.PI / 180;   /* 곡률 100일 때 좌우 끝까지 144도 */
+  var DEFAULT = {
+    text: '생일 축하해',
+    fontId: 'jua',
+    size: 50,
+    spacing: 0,
+    curve: 22,
+    lineHeight: 1.15,
+    align: 'center',
+    color: '#4A3326',
+    bg: '#FFF6E3',
+    guide: true
+  };
+
+  var state = {
+    text: DEFAULT.text, fontId: DEFAULT.fontId, size: DEFAULT.size,
+    spacing: DEFAULT.spacing, curve: DEFAULT.curve, lineHeight: DEFAULT.lineHeight,
+    align: DEFAULT.align, color: DEFAULT.color, bg: DEFAULT.bg, guide: DEFAULT.guide
+  };
+
+  var customFonts = [];
+  var customSeq = 0;
+
+  /* ================= DOM ================= */
+  function $(id) { return document.getElementById(id); }
+  var canvas = $('stage');
+  var ctx = canvas.getContext('2d');
+  var measureCanvas = document.createElement('canvas');
+  var measureCtx = measureCanvas.getContext('2d');
+  var sheet = $('sheet');
+  var stageInner = $('stageInner');
+  var fitBadge = $('fitBadge');
+  var emptyHint = $('emptyHint');
+  var textArea = $('text');
+  var toastEl = $('toast');
+
+  var stageW = 320, stageH = 320;
+
+  /* ================= 폰트 불러오기 ================= */
+  var familyState = {};   /* family -> 'pending' | 'injected' */
+
+  function gfUrl(fams) {
+    var parts = [];
+    for (var i = 0; i < fams.length; i++) {
+      parts.push('family=' + fams[i].replace(/ /g, '+'));
+    }
+    return 'https://fonts.googleapis.com/css2?' + parts.join('&') + '&display=swap';
+  }
+
+  function ensureFamily(family) {
+    if (familyState[family]) return;
+    familyState[family] = 'injected';
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = gfUrl([family]);
+    link.addEventListener('load', function () { draw(); });
+    document.head.appendChild(link);
+  }
+
+  var bulkLoaded = false;
+  function loadRestInBackground() {
+    if (bulkLoaded) return;
+    bulkLoaded = true;
+    var rest = [];
+    for (var i = 0; i < FONTS.length; i++) {
+      if (FONTS[i].group === 'ko' || FONTS[i].group === 'en') {
+        if (!familyState[FONTS[i].family]) {
+          familyState[FONTS[i].family] = 'injected';
+          rest.push(FONTS[i].family);
+        }
+      }
+    }
+    if (!rest.length) return;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = gfUrl(rest);
+    link.addEventListener('load', function () { draw(); });
+    document.head.appendChild(link);
+  }
+
+  function allFonts() { return FONTS.concat(customFonts); }
+
+  function fontById(id) {
+    for (var i = 0; i < FONTS.length; i++) if (FONTS[i].id === id) return FONTS[i];
+    for (var j = 0; j < customFonts.length; j++) if (customFonts[j].id === id) return customFonts[j];
+    return FONTS[0];
+  }
+
+  function currentFont() { return fontById(state.fontId); }
+
+  function cssFamily(family) {
+    return '"' + family + '", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
+  }
+
+  var fontLoadSeq = 0;
+  function preloadFont(family, text) {
+    if (!document.fonts || !document.fonts.load) return Promise.resolve();
+    var sample = (text || 'A') + ' Aa 가힣 0123';
+    var p;
+    try {
+      p = document.fonts.load('400 ' + Math.max(16, Math.round(state.size)) + 'px "' + family + '"', sample);
+    } catch (e) {
+      return Promise.resolve();
+    }
+    return p.then(function () { return null; }, function () { return null; });
+  }
+
+  /* ================= 레이아웃 ================= */
+  function layoutLine(m, line, o, y0) {
+    var chars = Array.from(line);
+    var glyphs = [];
+    if (!chars.length) return { glyphs: glyphs, bbox: null };
+
+    var raw = [], rawSum = 0, i;
+    for (i = 0; i < chars.length; i++) {
+      var w0 = m.measureText(chars[i]).width;
+      raw.push(w0);
+      rawSum += w0;
+    }
+    if (rawSum <= 0) return { glyphs: glyphs, bbox: null };
+
+    /* 글자별 폭 합과 전체 문자열 폭의 차이를 부드럽게 보정 (커닝·연결자 보정) */
+    var full = m.measureText(line).width;
+    var k = full / rawSum;
+    if (!isFinite(k) || k <= 0) k = 1;
+    k = Math.max(0.9, Math.min(1.12, k));
+
+    var ws = [], total = 0;
+    for (i = 0; i < chars.length; i++) {
+      ws[i] = raw[i] * k;
+      total += ws[i];
+    }
+    total += o.spacing * (chars.length - 1);
+    if (total <= 0.5) return { glyphs: glyphs, bbox: null };
+
+    var thetaHalf = Math.abs(o.curve) / 100 * MAX_ANGLE;
+    var R = thetaHalf > 0.004 ? total / (2 * Math.sin(thetaHalf)) : 0;
+
+    var bb = { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
+    var cursor = -total / 2;
+    var cosR = 1, sinR = 0;
+
+    for (i = 0; i < chars.length; i++) {
+      var ch = chars[i], w = ws[i];
+      var u = (cursor + w / 2) / (total / 2);
+      var phi = u * thetaHalf;
+      var px, py, rot;
+      if (R > 0) {
+        px = R * Math.sin(phi);
+        if (o.curve > 0) { py = y0 + R - R * Math.cos(phi); rot = phi; }
+        else { py = y0 - R + R * Math.cos(phi); rot = -phi; }
+      } else {
+        px = cursor + w / 2; py = y0; rot = 0;
+      }
+      glyphs.push({ ch: ch, px: px, py: py, rot: rot, w: w });
+
+      if (!/^\s$/.test(ch)) {
+        var mm = m.measureText(ch);
+        var abL = mm.actualBoundingBoxLeft || 0;
+        var abR = mm.actualBoundingBoxRight || 0;
+        var abA = mm.actualBoundingBoxAscent;
+        var abD = mm.actualBoundingBoxDescent;
+        if (!isFinite(abA) || abA <= 0) abA = o.size * 0.78;
+        if (!isFinite(abD) || abD < 0) abD = o.size * 0.22;
+        var x1 = -w / 2 - abL, x2 = -w / 2 + abR, y1 = -abA, y2 = abD;
+        cosR = Math.cos(rot); sinR = Math.sin(rot);
+        var pts = [[x1, y1], [x2, y1], [x2, y2], [x1, y2]];
+        for (var p = 0; p < 4; p++) {
+          var gx = px + pts[p][0] * cosR - pts[p][1] * sinR;
+          var gy = py + pts[p][0] * sinR + pts[p][1] * cosR;
+          if (gx < bb.l) bb.l = gx;
+          if (gx > bb.r) bb.r = gx;
+          if (gy < bb.t) bb.t = gy;
+          if (gy > bb.b) bb.b = gy;
+        }
+      }
+      cursor += w + o.spacing;
+    }
+
+    if (!isFinite(bb.l)) return { glyphs: glyphs, bbox: null };
+    return { glyphs: glyphs, bbox: bb };
+  }
+
+  function buildLayout(o) {
+    measureCtx.textBaseline = 'alphabetic';
+    measureCtx.textAlign = 'left';
+    measureCtx.font = '400 ' + o.size + 'px ' + cssFamily(o.family);
+
+    var lines = String(o.text).replace(/\r/g, '').split('\n');
+    var lh = o.size * o.lineHeight;
+    var all = [];
+    var gb = { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
+
+    for (var i = 0; i < lines.length; i++) {
+      var res = layoutLine(measureCtx, lines[i], o, 0);
+      if (!res.glyphs.length) continue;
+      var dy = i * lh;
+      var dx = 0;
+      if (res.bbox) {
+        if (o.align === 'left') dx = -res.bbox.l;
+        else if (o.align === 'right') dx = -res.bbox.r;
+        else dx = -(res.bbox.l + res.bbox.r) / 2;
+      }
+      for (var g = 0; g < res.glyphs.length; g++) {
+        var gl = res.glyphs[g];
+        gl.px += dx;
+        gl.py += dy;
+        all.push(gl);
+      }
+      if (res.bbox) {
+        var b = res.bbox;
+        if (b.l + dx < gb.l) gb.l = b.l + dx;
+        if (b.r + dx > gb.r) gb.r = b.r + dx;
+        if (b.t + dy < gb.t) gb.t = b.t + dy;
+        if (b.b + dy > gb.b) gb.b = b.b + dy;
+      }
+    }
+
+    if (!isFinite(gb.l)) gb = { l: -20, t: -20, r: 20, b: 20 };
+    return { glyphs: all, bbox: gb };
+  }
+
+  /* ================= 그리기 ================= */
+  function renderScene(c, W, H, showGuide) {
+    var f = currentFont();
+    c.save();
+    c.clearRect(0, 0, W, H);
+
+    if (state.bg) {
+      c.fillStyle = state.bg;
+      c.fillRect(0, 0, W, H);
+    }
+
+    if (showGuide) {
+      var r = Math.min(W, H) * 0.442;
+      c.beginPath();
+      c.arc(W / 2, H / 2, r, 0, Math.PI * 2);
+      c.fillStyle = 'rgba(255,255,255,0.32)';
+      c.fill();
+      c.setLineDash([4, 6]);
+      c.lineWidth = 1;
+      c.strokeStyle = 'rgba(150,116,86,0.34)';
+      c.stroke();
+      c.setLineDash([]);
+    }
+
+    var layout = buildLayout({
+      text: state.text,
+      family: f.family,
+      size: state.size,
+      spacing: state.spacing,
+      curve: state.curve,
+      lineHeight: state.lineHeight,
+      align: state.align
+    });
+
+    var b = layout.bbox;
+    var bw = Math.max(1, b.r - b.l);
+    var bh = Math.max(1, b.b - b.t);
+    var s = Math.min(1, (W * 0.90) / bw, (H * 0.90) / bh);
+
+    if (layout.glyphs.length) {
+      c.save();
+      c.translate(W / 2 - ((b.l + b.r) / 2) * s, H / 2 - ((b.t + b.b) / 2) * s);
+      c.scale(s, s);
+      c.fillStyle = state.color;
+      c.textAlign = 'left';
+      c.textBaseline = 'alphabetic';
+      c.font = '400 ' + state.size + 'px ' + cssFamily(f.family);
+
+      for (var i = 0; i < layout.glyphs.length; i++) {
+        var g = layout.glyphs[i];
+        if (g.ch === ' ' || g.ch === '\t') continue;
+        c.save();
+        c.translate(g.px, g.py);
+        if (g.rot) c.rotate(g.rot);
+        c.fillText(g.ch, -g.w / 2, 0);
+        c.restore();
+      }
+      c.restore();
+    }
+
+    c.restore();
+    return s;
+  }
+
+  var drawToken = 0;
+  var rafId = 0;
+  function draw() {
+    if (rafId) return;
+    rafId = requestAnimationFrame(function () {
+      rafId = 0;
+      paint();
+    });
+  }
+
+  function paint() {
+    var token = ++drawToken;
+    var f = currentFont();
+    var text = state.text;
+
+    Promise.resolve(preloadFont(f.family, text)).then(function () {
+      if (token !== drawToken) return;
+      var s = renderScene(ctx, stageW, stageH, state.guide);
+      updateBadges(s);
+    });
+  }
+
+  function updateBadges(s) {
+    var hasText = state.text.replace(/\s/g, '').length > 0;
+    emptyHint.hidden = hasText;
+
+    if (hasText && s < 0.985) {
+      fitBadge.textContent = '화면에 맞춤 ' + Math.round(s * 100) + '%';
+      fitBadge.hidden = false;
+    } else {
+      fitBadge.hidden = true;
+    }
+
+    var f = currentFont();
+    var hasKo = /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(state.text);
+    $('fontNote').hidden = !(hasKo && !f.ko);
+  }
+
+  /* ================= 화면 크기 ================= */
+  function fitStage() {
+    var wrap = stageInner;
+    var w = wrap.clientWidth;
+    var h = wrap.clientHeight;
+    var size = Math.floor(Math.min(w, h));
+    if (size < 120) size = Math.max(120, size);
+    stageW = size;
+    stageH = size;
+
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+    canvas.width = Math.round(size * dpr);
+    canvas.height = Math.round(size * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    canvas.classList.toggle('transparent', !state.bg);
+    draw();
+  }
+
+  /* ================= UI 만들기 ================= */
+  function makeChip(font) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.dataset.id = font.id;
+    b.textContent = font.name;
+    b.style.setProperty('--f', cssFamily(font.family));
+    if (font.custom) {
+      var tag = document.createElement('span');
+      tag.className = 'mine';
+      tag.textContent = '내 폰트';
+      b.appendChild(tag);
+    }
+    b.addEventListener('click', function () { selectFont(font.id); });
+    return b;
+  }
+
+  function renderFontGrids() {
+    var ko = $('gridKo'), en = $('gridEn');
+    ko.textContent = '';
+    en.textContent = '';
+    for (var i = 0; i < FONTS.length; i++) {
+      (FONTS[i].group === 'ko' ? ko : en).appendChild(makeChip(FONTS[i]));
+    }
+    var mine = $('gridMine');
+    mine.textContent = '';
+    if (customFonts.length) {
+      $('mineLabel').hidden = false;
+      mine.hidden = false;
+      for (var j = 0; j < customFonts.length; j++) mine.appendChild(makeChip(customFonts[j]));
+    } else {
+      $('mineLabel').hidden = true;
+      mine.hidden = true;
+    }
+    observeChips();
+    syncChips();
+  }
+
+  function syncChips() {
+    var chips = document.querySelectorAll('.chip[data-id]');
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].classList.toggle('on', chips[i].dataset.id === state.fontId);
+    }
+  }
+
+  var chipObserver = null;
+  function observeChips() {
+    if (!('IntersectionObserver' in window)) {
+      var all = document.querySelectorAll('.chip[data-id]');
+      for (var i = 0; i < all.length; i++) all[i].classList.add('vis');
+      return;
+    }
+    if (chipObserver) chipObserver.disconnect();
+    chipObserver = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) {
+          entries[i].target.classList.add('vis');
+          chipObserver.unobserve(entries[i].target);
+        }
+      }
+    }, { root: sheet, rootMargin: '280px 0px' });
+    var chips = document.querySelectorAll('.chip[data-id]');
+    for (var j = 0; j < chips.length; j++) chipObserver.observe(chips[j]);
+  }
+
+  function renderSwatches() {
+    var cr = $('colorRow');
+    cr.textContent = '';
+    COLOR_SWATCHES.forEach(function (c) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'sw' + (state.color === c.v ? ' on' : '');
+      b.style.background = c.v;
+      b.title = c.name;
+      b.setAttribute('aria-label', c.name);
+      b.addEventListener('click', function () {
+        state.color = c.v;
+        renderSwatches();
+        draw();
+      });
+      cr.appendChild(b);
+    });
+
+    var br = $('bgRow');
+    br.textContent = '';
+    BG_SWATCHES.forEach(function (c) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'sw' + (state.bg === c.v ? ' on' : '') + (c.v ? '' : ' trans');
+      if (c.v) b.style.background = c.v;
+      b.title = c.name;
+      b.setAttribute('aria-label', c.name);
+      b.addEventListener('click', function () {
+        state.bg = c.v;
+        renderSwatches();
+        canvas.classList.toggle('transparent', !state.bg);
+        draw();
+      });
+      br.appendChild(b);
+    });
+  }
+
+  function fmtSpacing(v) {
+    if (v === 0) return '0';
+    return (v > 0 ? '+' : '') + (Math.round(v * 10) / 10);
+  }
+
+  function fmtCurve(v) {
+    if (v === 0) return '직선';
+    return (v > 0 ? '아치 +' : 'U자 ') + Math.round(v);
+  }
+
+  var rangeEls = ['size', 'spacing', 'curve', 'lineHeight'];
+  function paintRanges() {
+    for (var i = 0; i < rangeEls.length; i++) {
+      var el = $(rangeEls[i]);
+      var min = parseFloat(el.min), max = parseFloat(el.max), v = parseFloat(el.value);
+      var pct = ((v - min) / (max - min)) * 100;
+      el.style.setProperty('--p', pct + '%');
+    }
+  }
+
+  function syncLabels() {
+    $('sizeVal').textContent = Math.round(state.size) + 'px';
+    $('spacingVal').textContent = fmtSpacing(state.spacing);
+    $('curveVal').textContent = fmtCurve(state.curve);
+    $('lhVal').textContent = (Math.round(state.lineHeight * 100) / 100).toFixed(2);
+    paintRanges();
+  }
+
+  function syncInputs() {
+    $('size').value = state.size;
+    $('spacing').value = state.spacing;
+    $('curve').value = state.curve;
+    $('lineHeight').value = state.lineHeight;
+    textArea.value = state.text;
+    $('guide').setAttribute('aria-checked', state.guide ? 'true' : 'false');
+    var ab = document.querySelectorAll('#align button');
+    for (var i = 0; i < ab.length; i++) {
+      ab[i].classList.toggle('on', ab[i].dataset.v === state.align);
+    }
+  }
+
+  function selectFont(id) {
+    state.fontId = id;
+    var f = fontById(id);
+    if (!f.custom) ensureFamily(f.family);
+    syncChips();
+    draw();
+    if (f.custom) return;
+    preloadFont(f.family, state.text);
+  }
+
+  /* ================= 저장 ================= */
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function stamp() {
+    var d = new Date();
+    function p(n) { return n < 10 ? '0' + n : '' + n; }
+    return String(d.getFullYear()).slice(2) + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes());
+  }
+
+  var saving = false;
+  function savePNG() {
+    if (saving) return;
+    saving = true;
+    var f = currentFont();
+
+    Promise.resolve(preloadFont(f.family, state.text)).then(function () {
+      var out = 1080;
+      var oc = document.createElement('canvas');
+      oc.width = out;
+      oc.height = out;
+      var octx = oc.getContext('2d');
+      var k = out / Math.max(stageW, stageH);
+      octx.setTransform(k, 0, 0, k, 0, 0);
+      renderScene(octx, stageW, stageH, false);
+
+      var name = 'lettering-' + stamp() + '.png';
+
+      function done(url) {
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { a.remove(); }, 1000);
+        saving = false;
+        toast(isIOS() ? '이미지를 만들었어요. 새 창에 열리면 길게 눌러 저장해 주세요.' : 'PNG로 저장했어요.');
+      }
+
+      if (oc.toBlob) {
+        oc.toBlob(function (blob) {
+          if (!blob) { done(oc.toDataURL('image/png')); return; }
+          var url = URL.createObjectURL(blob);
+          done(url);
+          setTimeout(function () { URL.revokeObjectURL(url); }, 20000);
+        }, 'image/png');
+      } else {
+        done(oc.toDataURL('image/png'));
+      }
+    }, function () {
+      saving = false;
+      toast('저장하지 못했어요. 다시 시도해 주세요.');
+    });
+  }
+
+  /* ================= 토스트 ================= */
+  var toastTimer = 0;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('on'); }, 2800);
+  }
+
+  /* ================= 내 폰트 ================= */
+  function addCustomFont(file) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      var buffer = reader.result;
+      var family = 'CustomFont' + (++customSeq);
+      var face;
+      try {
+        face = new FontFace(family, buffer);
+      } catch (e) {
+        toast('이 폰트 파일은 열 수 없어요.');
+        return;
+      }
+      face.load().then(function (loaded) {
+        document.fonts.add(loaded);
+        var label = file.name.replace(/\.[^.]+$/, '').slice(0, 10) || ('내 폰트 ' + customSeq);
+        var item = { id: 'custom' + customSeq, name: label, family: family, ko: true, group: 'mine', custom: true };
+        customFonts.push(item);
+        renderFontGrids();
+        selectFont(item.id);
+        toast('폰트를 적용했어요.');
+      }, function () {
+        toast('이 폰트 파일은 열 수 없어요.');
+      });
+    };
+    reader.onerror = function () { toast('파일을 읽지 못했어요.'); };
+    reader.readAsArrayBuffer(file);
+  }
+
+  /* ================= 이벤트 ================= */
+  function bindEvents() {
+    textArea.addEventListener('input', function () {
+      state.text = textArea.value;
+      draw();
+    });
+
+    $('examples').addEventListener('click', function (e) {
+      var b = e.target.closest('.ex');
+      if (!b) return;
+      state.text = b.textContent;
+      textArea.value = state.text;
+      draw();
+    });
+
+    $('size').addEventListener('input', function () {
+      state.size = parseFloat(this.value);
+      syncLabels();
+      draw();
+    });
+    $('spacing').addEventListener('input', function () {
+      state.spacing = parseFloat(this.value);
+      syncLabels();
+      draw();
+    });
+    $('curve').addEventListener('input', function () {
+      state.curve = parseFloat(this.value);
+      syncLabels();
+      draw();
+    });
+    $('lineHeight').addEventListener('input', function () {
+      state.lineHeight = parseFloat(this.value);
+      syncLabels();
+      draw();
+    });
+    $('curveReset').addEventListener('click', function () {
+      state.curve = 0;
+      $('curve').value = 0;
+      syncLabels();
+      draw();
+    });
+
+    $('align').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      state.align = b.dataset.v;
+      syncInputs();
+      draw();
+    });
+
+    $('guide').addEventListener('click', function () {
+      state.guide = !state.guide;
+      this.setAttribute('aria-checked', state.guide ? 'true' : 'false');
+      draw();
+    });
+
+    $('addFont').addEventListener('click', function () { $('fontFile').click(); });
+    $('fontFile').addEventListener('change', function () {
+      addCustomFont(this.files && this.files[0]);
+      this.value = '';
+    });
+
+    $('saveTop').addEventListener('click', savePNG);
+    $('saveBottom').addEventListener('click', savePNG);
+
+    $('reset').addEventListener('click', function () {
+      state.text = DEFAULT.text;
+      state.fontId = DEFAULT.fontId;
+      state.size = DEFAULT.size;
+      state.spacing = DEFAULT.spacing;
+      state.curve = DEFAULT.curve;
+      state.lineHeight = DEFAULT.lineHeight;
+      state.align = DEFAULT.align;
+      state.color = DEFAULT.color;
+      state.bg = DEFAULT.bg;
+      state.guide = DEFAULT.guide;
+      syncInputs();
+      syncLabels();
+      syncChips();
+      renderSwatches();
+      canvas.classList.toggle('transparent', !state.bg);
+      draw();
+      toast('처음 상태로 돌아왔어요.');
+    });
+
+    if (document.fonts && document.fonts.addEventListener) {
+      document.fonts.addEventListener('loadingdone', function () { draw(); });
+    }
+
+    if (window.ResizeObserver) {
+      new ResizeObserver(function () { fitStage(); }).observe(stageInner);
+    } else {
+      window.addEventListener('resize', fitStage);
+      window.addEventListener('orientationchange', function () { setTimeout(fitStage, 250); });
+    }
+    window.addEventListener('orientationchange', function () { setTimeout(fitStage, 250); });
+  }
+
+  /* ================= 시작 ================= */
+  function init() {
+    ensureFamily(fontById(state.fontId).family);
+    renderFontGrids();
+    renderSwatches();
+    syncInputs();
+    syncLabels();
+    bindEvents();
+    canvas.classList.toggle('transparent', !state.bg);
+    fitStage();
+    draw();
+
+    setTimeout(loadRestInBackground, 700);
+    setTimeout(function () {
+      fitStage();
+      draw();
+    }, 400);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
