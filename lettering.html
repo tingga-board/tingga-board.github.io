@@ -435,7 +435,7 @@
           <span class="ctrl-val" id="curveVal">아치 +22</span>
         </div>
         <input type="range" id="curve" min="-100" max="100" step="1" value="22" aria-label="곡률">
-        <div class="scale"><span>U자 -100</span><span>직선 0</span><span>아치 +100</span></div>
+        <div class="scale"><span>원형 -100</span><span>직선 0</span><span>원형 +100</span></div>
         <button class="mini" id="curveReset" type="button" style="margin-top:7px">직선으로 되돌리기</button>
       </div>
 
@@ -535,7 +535,13 @@
     { name: '투명',     v: null }
   ];
 
-  var MAX_ANGLE = 72 * Math.PI / 180;   /* 곡률 100일 때 좌우 끝까지 144도 */
+  /* 곡률: 예전에는 ±100 이 좌우 144도였는데, 이제 ±100 이면 원주 340도(20도 틈)의
+     원형까지 말린다. 낮은 값은 예전 모습(72°/100)을 거의 그대로 두고 t³ 항으로 끝에서 크게 휜다. */
+  var CURVE_DEG_LINEAR = 72, CURVE_DEG_CUBIC = 98;   /* 72+98 = 170 → 좌우 340도 */
+  function curveHalfAngle(curve) {
+    var t = Math.min(1, Math.abs(curve) / 100);
+    return (CURVE_DEG_LINEAR * t + CURVE_DEG_CUBIC * t * t * t) * Math.PI / 180;
+  }
   /* 글자 위치는 저장 이미지와 똑같이 1080×1080 기준 좌표로 다룬다 */
   var STAGE_UNIT = 1080;
   var MAX_OFFSET = 520;                 /* 1080 기준, 가운데에서 가장자리까지 */
@@ -711,12 +717,19 @@
     var glyphs = [];
     if (!chars.length) return { glyphs: glyphs, bbox: null };
 
-    var raw = [], rawSum = 0, i;
+    var raw = [], rawSum = 0, i, ascentRef = 0;
     for (i = 0; i < chars.length; i++) {
-      var w0 = m.measureText(chars[i]).width;
-      raw.push(w0);
-      rawSum += w0;
+      var mm0 = m.measureText(chars[i]);
+      raw.push(mm0.width);
+      rawSum += mm0.width;
+      /* 안쪽으로 말 때 반지름을 글자 높이만큼 키우는 데 쓰는 기준 높이 */
+      if (mm0.width > 0 && !/^\s$/.test(chars[i])) {
+        var a0 = mm0.actualBoundingBoxAscent;
+        if (!isFinite(a0) || a0 <= 0) a0 = o.size * 0.78;
+        if (a0 > ascentRef) ascentRef = a0;
+      }
     }
+    if (ascentRef <= 0) ascentRef = o.size * 0.78;
     if (rawSum <= 0) return { glyphs: glyphs, bbox: null };
 
     /* 글자별 폭 합과 전체 문자열 폭의 차이를 부드럽게 보정 (커닝·연결자 보정) */
@@ -733,9 +746,18 @@
     total += o.spacing * (chars.length - 1);
     if (total <= 0.5) return { glyphs: glyphs, bbox: null };
 
-    var thetaHalf = Math.abs(o.curve) / 100 * MAX_ANGLE;
-    /* 글자 폭의 합이 호 길이가 되도록 반지름을 잡는다 (textPath와 같은 방식) */
-    var R = thetaHalf > 0.004 ? total / (2 * thetaHalf) : 0;
+    var thetaHalf = curveHalfAngle(o.curve);
+    /* 글자 폭의 합이 호 길이가 되도록 반지름을 잡는다 (textPath와 같은 방식).
+       다만 글씨가 아주 짧으면 반지름이 손톱만 해져 글자가 가운데서 뭉개지므로,
+       최소 반지름(글자 높이 정도)을 두고 그만큼 덜 휘게 한다. */
+    var R = 0;
+    if (thetaHalf > 0.004) {
+      R = total / (2 * thetaHalf);
+      if (R < o.size * 0.85) R = o.size * 0.85;
+    }
+    /* curve < 0 (U자·안쪽 원형)은 글자 윗동이 원 안쪽을 보므로, 글자 몸통이
+       바깥 원형과 같은 자리에 오도록 반지름을 글자 높이의 절반만큼 키운다 */
+    var RB = R + (R > 0 && o.curve < 0 ? ascentRef * 0.5 : 0);
 
     var bb = { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
     var cursor = -total / 2;
@@ -746,9 +768,11 @@
       var phi = R > 0 ? (cursor + w / 2) / R : 0;
       var px, py, rot;
       if (R > 0) {
-        px = R * Math.sin(phi);
-        if (o.curve > 0) { py = y0 + R - R * Math.cos(phi); rot = phi; }
-        else { py = y0 - R + R * Math.cos(phi); rot = -phi; }
+        if (o.curve > 0) {
+          px = R * Math.sin(phi); py = y0 + R - R * Math.cos(phi); rot = phi;
+        } else {
+          px = RB * Math.sin(phi); py = y0 - RB + RB * Math.cos(phi); rot = -phi;
+        }
       } else {
         px = cursor + w / 2; py = y0; rot = 0;
       }
@@ -788,32 +812,40 @@
 
     var lines = String(o.text).replace(/\r/g, '').split('\n');
     var lh = o.size * o.lineHeight;
+    var gapMin = Math.max(0, lh - o.size);   /* 줄 사이 최소 여백 */
     var all = [];
     var gb = { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
+    var cursorY = 0;                         /* 다음 줄 기준선 */
+    var prevBottom = null;
 
     for (var i = 0; i < lines.length; i++) {
       var res = layoutLine(measureCtx, lines[i], o, 0);
-      if (!res.glyphs.length) continue;
-      var dy = i * lh;
-      var dx = 0;
-      if (res.bbox) {
+      var dy = cursorY;
+      if (res.glyphs.length && res.bbox) {
+        /* 곡률이 세면 줄마다 위아래로 크게 휘므로, 앞 줄의 실제 아래끝보다
+           충분히 아래에서 시작하게 해 여러 줄이 겹치지 않게 한다. */
+        if (prevBottom !== null) {
+          var need = prevBottom + gapMin - res.bbox.t;
+          if (need > dy) dy = need;
+        }
+        var dx = 0;
         if (o.align === 'left') dx = -res.bbox.l;
         else if (o.align === 'right') dx = -res.bbox.r;
         else dx = -(res.bbox.l + res.bbox.r) / 2;
-      }
-      for (var g = 0; g < res.glyphs.length; g++) {
-        var gl = res.glyphs[g];
-        gl.px += dx;
-        gl.py += dy;
-        all.push(gl);
-      }
-      if (res.bbox) {
+        for (var g = 0; g < res.glyphs.length; g++) {
+          var gl = res.glyphs[g];
+          gl.px += dx;
+          gl.py += dy;
+          all.push(gl);
+        }
         var b = res.bbox;
         if (b.l + dx < gb.l) gb.l = b.l + dx;
         if (b.r + dx > gb.r) gb.r = b.r + dx;
         if (b.t + dy < gb.t) gb.t = b.t + dy;
         if (b.b + dy > gb.b) gb.b = b.b + dy;
+        prevBottom = b.b + dy;
       }
+      cursorY = dy + lh;
     }
 
     if (!isFinite(gb.l)) gb = { l: -20, t: -20, r: 20, b: 20 };
@@ -1219,7 +1251,9 @@
 
   function fmtCurve(v) {
     if (v === 0) return '직선';
-    return (v > 0 ? '아치 +' : 'U자 ') + Math.round(v);
+    var n = Math.round(v);
+    if (Math.abs(n) >= 90) return (v > 0 ? '원형 +' : '원형 ') + n;
+    return (v > 0 ? '아치 +' : 'U자 ') + n;
   }
 
   var rangeEls = ['size', 'spacing', 'curve', 'lineHeight'];
