@@ -65,17 +65,42 @@
   /* ---------- 미리보기 ---------- */
   .stage-wrap {
     position: relative; flex: 1 1 auto; min-height: 0;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 4px 16px 10px;
+    --pos-row-h: 31px;   /* 안내 줄 높이 — 캔버스 크기가 흔들리지 않게 고정 */
   }
   .stage-inner {
-    position: relative; width: 100%; height: 100%;
+    position: relative; width: 100%; flex: 1 1 auto; min-height: 0;
     display: flex; align-items: center; justify-content: center;
   }
+  /* 캔버스 바로 아래: 끌어서 옮길 수 있다는 한 줄 안내 + 가운데로 되돌리기 */
+  .pos-row {
+    flex: 0 0 auto; width: 100%; height: var(--pos-row-h);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 6px 2px 0;
+  }
+  .pos-hint {
+    min-width: 0; flex: 0 1 auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    font-size: 10.5px; letter-spacing: -.01em; color: #B3A390;
+    -webkit-user-select: none; user-select: none;
+  }
+  .pos-reset {
+    flex: 0 0 auto; padding: 4px 10px; border-radius: 999px;
+    font-size: 10.5px; font-weight: 600; letter-spacing: -.01em; color: #8A6A4C;
+    background: rgba(255, 255, 255, .92); border: 1px solid #EBDCC8;
+    box-shadow: 0 2px 6px rgba(140, 105, 70, .10);
+    white-space: nowrap;
+  }
+  .pos-reset:active { background: #FBF1E2; }
   #stage {
     display: block; border-radius: 24px; background: #fff;
     box-shadow: 0 10px 26px rgba(140, 105, 70, .13), inset 0 0 0 1px rgba(180, 150, 120, .10);
+    touch-action: none;
+    -webkit-user-select: none; user-select: none;
+    -webkit-touch-callout: none;
+    cursor: grab;
   }
+  #stage.dragging { cursor: grabbing; }
   #stage.transparent {
     background: repeating-conic-gradient(#EFE7DA 0 25%, #FFFDF8 0 50%) 50% / 14px 14px;
   }
@@ -84,7 +109,8 @@
     font-size: 13.5px; color: #B6A18B; pointer-events: none; letter-spacing: -.01em;
   }
   .fit-badge {
-    position: absolute; right: 22px; bottom: 16px;
+    position: absolute; right: 22px;
+    bottom: calc(var(--pos-row-h) + 16px);   /* 캔버스 아래 안내 줄 위 */
     font-size: 10.5px; padding: 4px 9px; border-radius: 999px;
     background: rgba(255, 255, 255, .88); color: #9A8168;
     box-shadow: 0 2px 8px rgba(140, 105, 70, .12);
@@ -340,8 +366,12 @@
 
   <div class="stage-wrap" id="stageWrap">
     <div class="stage-inner" id="stageInner">
-      <canvas id="stage" width="320" height="320" aria-label="레터링 미리보기"></canvas>
+      <canvas id="stage" width="320" height="320" aria-label="레터링 미리보기 · 글자를 끌어 위치를 옮길 수 있어요"></canvas>
       <div class="empty" id="emptyHint" hidden>문구를 입력해 주세요</div>
+    </div>
+    <div class="pos-row">
+      <span class="pos-hint" id="posHint">글자를 손가락으로 끌어 위치를 옮길 수 있어요</span>
+      <button class="pos-reset" id="posReset" type="button" aria-label="글자 위치를 가운데로" hidden>위치 가운데로</button>
     </div>
     <div class="fit-badge" id="fitBadge" hidden></div>
   </div>
@@ -506,6 +536,9 @@
   ];
 
   var MAX_ANGLE = 72 * Math.PI / 180;   /* 곡률 100일 때 좌우 끝까지 144도 */
+  /* 글자 위치는 저장 이미지와 똑같이 1080×1080 기준 좌표로 다룬다 */
+  var STAGE_UNIT = 1080;
+  var MAX_OFFSET = 520;                 /* 1080 기준, 가운데에서 가장자리까지 */
   var DEFAULT = {
     text: '생일 축하해',
     fontId: 'jua',
@@ -516,13 +549,16 @@
     align: 'center',
     color: '#4A3326',
     bg: '#FFF6E3',
-    guide: true
+    guide: true,
+    offsetX: 0,
+    offsetY: 0
   };
 
   var state = {
     text: DEFAULT.text, fontId: DEFAULT.fontId, size: DEFAULT.size,
     spacing: DEFAULT.spacing, curve: DEFAULT.curve, lineHeight: DEFAULT.lineHeight,
-    align: DEFAULT.align, color: DEFAULT.color, bg: DEFAULT.bg, guide: DEFAULT.guide
+    align: DEFAULT.align, color: DEFAULT.color, bg: DEFAULT.bg, guide: DEFAULT.guide,
+    offsetX: DEFAULT.offsetX, offsetY: DEFAULT.offsetY
   };
 
   var customFonts = [];
@@ -823,9 +859,13 @@
     var bh = Math.max(1, b.b - b.t);
     var s = Math.min(1, (W * 0.90) / bw, (H * 0.90) / bh);
 
+    /* 1080 기준 오프셋을 지금 그리는 크기로 환산한다 (미리보기·저장 동일) */
+    var ox = state.offsetX * (W / STAGE_UNIT);
+    var oy = state.offsetY * (H / STAGE_UNIT);
+
     if (layout.glyphs.length) {
       c.save();
-      c.translate(W / 2 - ((b.l + b.r) / 2) * s, H / 2 - ((b.t + b.b) / 2) * s);
+      c.translate(W / 2 - ((b.l + b.r) / 2) * s + ox, H / 2 - ((b.t + b.b) / 2) * s + oy);
       c.scale(s, s);
       c.fillStyle = state.color;
       c.textAlign = 'left';
@@ -905,6 +945,66 @@
 
     canvas.classList.toggle('transparent', !state.bg);
     draw();
+  }
+
+  /* ================= 글자 위치 이동(드래그) ================= */
+  var drag = null;
+
+  function clampOffset(v) {
+    if (!isFinite(v)) return 0;
+    if (v < -MAX_OFFSET) return -MAX_OFFSET;
+    if (v > MAX_OFFSET) return MAX_OFFSET;
+    return v;
+  }
+
+  function syncPosUI() {
+    var btn = $('posReset');
+    if (!btn) return;
+    btn.hidden = !(state.offsetX || state.offsetY);
+  }
+
+  function setOffset(x, y) {
+    var nx = Math.round(clampOffset(x) * 10) / 10;
+    var ny = Math.round(clampOffset(y) * 10) / 10;
+    /* 손을 뗀 자리가 가운데 언저리면 딱 가운데로 붙여 준다 */
+    if (nx > -3 && nx < 3) nx = 0;
+    if (ny > -3 && ny < 3) ny = 0;
+    if (nx === state.offsetX && ny === state.offsetY) return false;
+    state.offsetX = nx;
+    state.offsetY = ny;
+    syncPosUI();
+    draw();
+    return true;
+  }
+
+  function recenter() {
+    if (!state.offsetX && !state.offsetY) return;
+    setOffset(0, 0);
+  }
+
+  function startDrag(e) {
+    if (drag) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, ox: state.offsetX, oy: state.offsetY };
+    canvas.classList.add('dragging');
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    if (e.cancelable) e.preventDefault();
+  }
+
+  function moveDrag(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    /* 화면 픽셀 이동량 → 1080 기준 좌표 이동량 (미리보기 배율과 무관하게 1:1) */
+    var k = STAGE_UNIT / Math.max(1, stageW);
+    setOffset(drag.ox + (e.clientX - drag.x) * k, drag.oy + (e.clientY - drag.y) * k);
+    if (e.cancelable) e.preventDefault();
+  }
+
+  function endDrag(e) {
+    if (!drag) return;
+    if (e && e.pointerId !== drag.id) return;
+    try { canvas.releasePointerCapture(drag.id); } catch (err) {}
+    drag = null;
+    canvas.classList.remove('dragging');
   }
 
   /* ================= UI 만들기 ================= */
@@ -1637,6 +1737,15 @@
       draw();
     });
 
+    /* 캔버스에서 글자를 끌어 위치를 옮긴다 (마우스·펜·손가락 공통) */
+    canvas.addEventListener('pointerdown', startDrag);
+    canvas.addEventListener('pointermove', moveDrag);
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
+    canvas.addEventListener('lostpointercapture', endDrag);
+    canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    $('posReset').addEventListener('click', recenter);
+
     $('examples').addEventListener('click', function (e) {
       var b = e.target.closest('.ex');
       if (!b) return;
@@ -1701,6 +1810,7 @@
     $('reset').addEventListener('click', function () {
       editMode = false;
       disarmChips();
+      endDrag(null);
       state.text = DEFAULT.text;
       var start = fontById(DEFAULT.fontId) || firstAvailableFont();
       state.fontId = start ? start.id : FALLBACK_FONT.id;
@@ -1713,8 +1823,11 @@
       state.color = DEFAULT.color;
       state.bg = DEFAULT.bg;
       state.guide = DEFAULT.guide;
+      state.offsetX = DEFAULT.offsetX;
+      state.offsetY = DEFAULT.offsetY;
       syncInputs();
       syncLabels();
+      syncPosUI();
       renderFontGrids();
       renderSwatches();
       canvas.classList.toggle('transparent', !state.bg);
@@ -1745,6 +1858,7 @@
     renderSwatches();
     syncInputs();
     syncLabels();
+    syncPosUI();
     bindEvents();
     canvas.classList.toggle('transparent', !state.bg);
     fitStage();
