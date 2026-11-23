@@ -756,8 +756,8 @@
       if (R < o.size * 0.85) R = o.size * 0.85;
     }
     /* curve < 0 (U자·안쪽 원형)은 글자 윗동이 원 안쪽을 보므로, 글자 몸통이
-       바깥 원형과 같은 자리에 오도록 반지름을 글자 높이의 절반만큼 키운다 */
-    var RB = R + (R > 0 && o.curve < 0 ? ascentRef * 0.5 : 0);
+       바깥 원형과 같은 자리에 오도록 반지름을 글자 높이의 0.7배만큼 키운다 */
+    var RB = R + (R > 0 && o.curve < 0 ? ascentRef * 0.7 : 0);
 
     var bb = { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
     var cursor = -total / 2;
