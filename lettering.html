@@ -159,6 +159,50 @@
     border-style: dashed; color: #AC8C6C; font-size: 12px; font-family: inherit !important;
   }
 
+  /* ---------- 내 폰트 목록 (한 줄에 폰트 + 이름수정 + 삭제) ---------- */
+  .mine-list { display: flex; flex-direction: column; gap: 7px; }
+  .mine-row { display: flex; align-items: stretch; gap: 6px; }
+  .mine-pick {
+    flex: 1 1 auto; min-width: 0; display: flex; align-items: center;
+    min-height: 46px; padding: 8px 12px; border-radius: 14px; text-align: left;
+    border: 1px solid #EFE3D1; background: #FFFDF9;
+    font-family: var(--f); font-size: 15px; line-height: 1.2;
+    letter-spacing: -.02em; color: #4A3B2C; overflow: hidden;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .mine-pick .mine-name {
+    display: block; max-width: 100%; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+  }
+  .mine-pick.on {
+    border-color: #C08A5E; background: #FFF4E4; color: #8A5530;
+    box-shadow: inset 0 0 0 1px #C08A5E;
+  }
+  .mine-btn {
+    flex: 0 0 auto; width: 44px; display: flex; align-items: center; justify-content: center;
+    border-radius: 14px; border: 1px solid #EFE3D1; background: #FFFDF9;
+    font-size: 15px; color: #9A8067; line-height: 1;
+  }
+  .mine-btn:active { background: #FBF1E2; }
+  .mine-btn.del { color: #B0715F; font-size: 16px; }
+  .mine-btn.del.arm {
+    width: auto; min-width: 58px; padding: 0 8px;
+    font-size: 12px; font-weight: 650; letter-spacing: -.01em;
+    background: #FBEAE4; border-color: #E3B4A4; color: #A5482E;
+  }
+  .mine-input {
+    flex: 1 1 auto; min-width: 0; min-height: 46px; padding: 8px 12px;
+    border: 1px solid #DCBC8E; border-radius: 14px; background: #FFFDF9;
+    font-family: inherit; font-size: 16px; color: #3E3227; outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 188, 142, .18);
+  }
+  .mine-btn.ok {
+    width: auto; min-width: 54px; padding: 0 10px;
+    font-size: 12.5px; font-weight: 650; letter-spacing: -.01em;
+    background: linear-gradient(180deg, #C48E62, #A9703F);
+    border-color: transparent; color: #fff;
+  }
+
   .ctrl { margin-bottom: 13px; }
   .ctrl:last-child { margin-bottom: 0; }
   .ctrl-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; }
@@ -292,12 +336,12 @@
       <div class="gsub">영문</div>
       <div class="grid" id="gridEn"></div>
       <div class="gsub" id="mineLabel" hidden>내 폰트</div>
-      <div class="grid" id="gridMine" hidden></div>
+      <div class="mine-list" id="mineList" hidden></div>
       <div class="gsub">직접 불러오기</div>
       <div class="grid">
         <button class="chip add" id="addFont" type="button">+ 폰트 파일</button>
       </div>
-      <p class="note">.ttf · .otf · .woff 파일을 고르면 바로 적용돼요. 지금 화면에서만 쓰이고, 새로 열면 다시 불러와야 해요.</p>
+      <p class="note">.ttf · .otf · .woff 파일을 고르면 바로 적용돼요. 불러온 폰트는 이 기기(브라우저)에 저장되어 새로 열어도 유지돼요. ✏️ 로 이름을 바꾸고 ✕ 로 지울 수 있어요.</p>
       <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden>
     </section>
 
@@ -441,7 +485,6 @@
   };
 
   var customFonts = [];
-  var customSeq = 0;
 
   /* ================= DOM ================= */
   function $(id) { return document.getElementById(id); }
@@ -790,22 +833,13 @@
     for (var i = 0; i < FONTS.length; i++) {
       (FONTS[i].group === 'ko' ? ko : en).appendChild(makeChip(FONTS[i]));
     }
-    var mine = $('gridMine');
-    mine.textContent = '';
-    if (customFonts.length) {
-      $('mineLabel').hidden = false;
-      mine.hidden = false;
-      for (var j = 0; j < customFonts.length; j++) mine.appendChild(makeChip(customFonts[j]));
-    } else {
-      $('mineLabel').hidden = true;
-      mine.hidden = true;
-    }
+    renderMineList();
     observeChips();
     syncChips();
   }
 
   function syncChips() {
-    var chips = document.querySelectorAll('.chip[data-id]');
+    var chips = document.querySelectorAll('.chip[data-id], .mine-pick[data-id]');
     for (var i = 0; i < chips.length; i++) {
       chips[i].classList.toggle('on', chips[i].dataset.id === state.fontId);
     }
@@ -985,34 +1019,403 @@
     toastTimer = setTimeout(function () { toastEl.classList.remove('on'); }, 2800);
   }
 
+  /* ================= 내 폰트 저장소 (IndexedDB) ================= */
+  var FONT_DB = 'buttertree-lettering-fonts';
+  var FONT_STORE = 'fonts';
+  var dbPromise = null;
+  var dbBroken = false;
+
+  function idbOpen() {
+    if (dbPromise) return dbPromise;
+    var idb = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
+    if (!idb) {
+      dbBroken = true;
+      return Promise.reject(new Error('no-indexeddb'));
+    }
+    dbPromise = new Promise(function (resolve, reject) {
+      var req;
+      try { req = idb.open(FONT_DB, 1); }
+      catch (e) { reject(e); return; }
+      req.onupgradeneeded = function () {
+        var db = req.result;
+        if (!db.objectStoreNames.contains(FONT_STORE)) {
+          db.createObjectStore(FONT_STORE, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = function () {
+        var db = req.result;
+        db.onversionchange = function () {
+          try { db.close(); } catch (e) {}
+          dbPromise = null;
+        };
+        resolve(db);
+      };
+      req.onerror = function () { reject(req.error || new Error('open-failed')); };
+      req.onblocked = function () { /* 다른 탭이 닫히기를 기다린다 */ };
+    });
+    dbPromise.then(null, function () { dbPromise = null; dbBroken = true; });
+    return dbPromise;
+  }
+
+  function idbAllFonts() {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx, st, req, out = [];
+        try {
+          tx = db.transaction(FONT_STORE, 'readonly');
+          st = tx.objectStore(FONT_STORE);
+          req = st.openCursor();
+        } catch (e) { reject(e); return; }
+        req.onsuccess = function () {
+          var cur = req.result;
+          if (cur) { out.push(cur.value); cur["continue"](); return; }
+          resolve(out);
+        };
+        req.onerror = function () { reject(req.error || new Error('read-failed')); };
+        tx.onabort = function () { reject(tx.error || new Error('read-aborted')); };
+      });
+    });
+  }
+
+  function idbPutFont(record) {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx, st, req;
+        try {
+          tx = db.transaction(FONT_STORE, 'readwrite');
+          st = tx.objectStore(FONT_STORE);
+          req = st.put(record);
+        } catch (e) { reject(e); return; }
+        req.onsuccess = function () { resolve(true); };
+        req.onerror = function () { reject(req.error || new Error('write-failed')); };
+        tx.onabort = function () { reject(tx.error || new Error('write-aborted')); };
+      });
+    });
+  }
+
+  function idbDeleteFont(id) {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx, st, req;
+        try {
+          tx = db.transaction(FONT_STORE, 'readwrite');
+          st = tx.objectStore(FONT_STORE);
+          req = st["delete"](id);
+        } catch (e) { reject(e); return; }
+        req.onsuccess = function () { resolve(true); };
+        req.onerror = function () { reject(req.error || new Error('delete-failed')); };
+        tx.onabort = function () { reject(tx.error || new Error('delete-aborted')); };
+      });
+    });
+  }
+
+  function idbRenameFont(id, name) {
+    return idbOpen().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx, st, getReq;
+        try {
+          tx = db.transaction(FONT_STORE, 'readwrite');
+          st = tx.objectStore(FONT_STORE);
+          getReq = st.get(id);
+        } catch (e) { reject(e); return; }
+        if (!getReq) { resolve(false); return; }
+        getReq.onsuccess = function () {
+          var rec = getReq.result;
+          if (!rec) { resolve(false); return; }
+          rec.name = name;
+          var putReq = st.put(rec);
+          putReq.onsuccess = function () { resolve(true); };
+          putReq.onerror = function () { reject(putReq.error || new Error('write-failed')); };
+        };
+        getReq.onerror = function () { reject(getReq.error || new Error('read-failed')); };
+        tx.onabort = function () { reject(tx.error || new Error('write-aborted')); };
+      });
+    });
+  }
+
   /* ================= 내 폰트 ================= */
+  function customIndex(id) {
+    for (var i = 0; i < customFonts.length; i++) if (customFonts[i].id === id) return i;
+    return -1;
+  }
+
+  function customById(id) {
+    var i = customIndex(id);
+    return i >= 0 ? customFonts[i] : null;
+  }
+
+  function familyForId(id) {
+    return 'BTFont_' + String(id).replace(/[^A-Za-z0-9_]/g, '');
+  }
+
+  function newFontId() {
+    return 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  function cleanFontName(raw) {
+    var s = String(raw === null || raw === undefined ? '' : raw).replace(/\s+/g, ' ').trim();
+    return s.slice(0, 24);
+  }
+
+  function registerFace(item, buffer) {
+    var family = familyForId(item.id);
+    var face, loading;
+    try { face = new FontFace(family, buffer); }
+    catch (e) { return Promise.reject(e); }
+    try { loading = face.load(); }
+    catch (e) { return Promise.reject(e); }
+    return Promise.resolve(loading).then(function (loaded) {
+      document.fonts.add(loaded);
+      item.family = family;
+      item.face = loaded;
+      item.ko = true;
+      return item;
+    });
+  }
+
   function addCustomFont(file) {
     if (!file) return;
     var reader = new FileReader();
     reader.onload = function () {
       var buffer = reader.result;
-      var family = 'CustomFont' + (++customSeq);
-      var face;
-      try {
-        face = new FontFace(family, buffer);
-      } catch (e) {
-        toast('이 폰트 파일은 열 수 없어요.');
+      if (!buffer || typeof buffer.byteLength !== 'number' || !buffer.byteLength) {
+        toast('파일을 읽지 못했어요.');
         return;
       }
-      face.load().then(function (loaded) {
-        document.fonts.add(loaded);
-        var label = file.name.replace(/\.[^.]+$/, '').slice(0, 10) || ('내 폰트 ' + customSeq);
-        var item = { id: 'custom' + customSeq, name: label, family: family, ko: true, group: 'mine', custom: true };
+      var keep = buffer.slice ? buffer.slice(0) : buffer;
+      var base = String(file.name || '').replace(/\.[^.]+$/, '');
+      var item = {
+        id: newFontId(), name: cleanFontName(base) || '내 폰트',
+        family: '', ko: true, group: 'mine', custom: true
+      };
+      registerFace(item, buffer).then(function () {
         customFonts.push(item);
         renderFontGrids();
         selectFont(item.id);
-        toast('폰트를 적용했어요.');
+        return idbPutFont({ id: item.id, name: item.name, createdAt: Date.now(), buffer: keep });
+      }).then(function () {
+        toast('폰트를 저장했어요. 새로 열어도 그대로 있어요.');
       }, function () {
-        toast('이 폰트 파일은 열 수 없어요.');
+        if (item.family) {
+          toast('폰트를 적용했지만 저장하지 못했어요. 이번 화면에서만 써요.');
+        } else {
+          toast('이 폰트 파일은 열 수 없어요.');
+        }
       });
     };
     reader.onerror = function () { toast('파일을 읽지 못했어요.'); };
     reader.readAsArrayBuffer(file);
+  }
+
+  function restoreCustomFonts() {
+    return idbAllFonts().then(function (records) {
+      var list = (records || []).filter(function (r) {
+        return r && r.id && r.buffer && r.buffer.byteLength > 0;
+      });
+      list.sort(function (a, b) {
+        return (a.createdAt || 0) - (b.createdAt || 0) || String(a.id).localeCompare(String(b.id));
+      });
+      var chain = Promise.resolve();
+      list.forEach(function (rec) {
+        chain = chain.then(function () {
+          if (customIndex(rec.id) >= 0) return null;
+          var item = {
+            id: rec.id, name: cleanFontName(rec.name) || '내 폰트',
+            family: '', ko: true, group: 'mine', custom: true
+          };
+          return registerFace(item, rec.buffer).then(function () {
+            customFonts.push(item);
+          }, function () { return null; });
+        });
+      });
+      return chain;
+    }).then(function () {
+      renderFontGrids();
+      draw();
+    });
+  }
+
+  var editingId = null;
+  var deleteTimer = 0;
+
+  function startRename(id) {
+    if (!customById(id)) return;
+    disarmDelete();
+    editingId = id;
+    renderFontGrids();
+  }
+
+  function applyRename(id, raw) {
+    var item = customById(id);
+    if (!item) { renderFontGrids(); return; }
+    var name = cleanFontName(raw);
+    if (!name) {
+      toast('이름이 비어 있어 그대로 뒀어요.');
+      renderFontGrids();
+      return;
+    }
+    if (name === item.name) { renderFontGrids(); return; }
+    item.name = name;
+    renderFontGrids();
+    idbRenameFont(id, name).then(function (ok) {
+      toast(ok ? '이름을 저장했어요.' : '이번 화면에서만 이름이 바뀌었어요.');
+    }, function () {
+      toast('이름을 저장하지 못했어요. 이번 화면에서만 바뀌었어요.');
+    });
+  }
+
+  function armDelete(btn, id) {
+    disarmDelete();
+    btn.dataset.arm = '1';
+    btn.classList.add('arm');
+    btn.textContent = '삭제?';
+    btn.dataset.label = btn.dataset.label || '삭제';
+    deleteTimer = setTimeout(disarmDelete, 3500);
+  }
+
+  function disarmDelete() {
+    clearTimeout(deleteTimer);
+    var armed = document.querySelectorAll('.mine-btn.del.arm');
+    for (var i = 0; i < armed.length; i++) {
+      armed[i].classList.remove('arm');
+      armed[i].dataset.arm = '';
+      armed[i].textContent = '✕';
+      armed[i].setAttribute('aria-label', armed[i].dataset.label || '삭제');
+    }
+  }
+
+  function deleteCustomFont(id) {
+    var idx = customIndex(id);
+    if (idx < 0) return;
+    disarmDelete();
+    var item = customFonts[idx];
+    var wasSelected = state.fontId === id;
+    customFonts.splice(idx, 1);
+    if (editingId === id) editingId = null;
+    if (item.face && document.fonts && typeof document.fonts['delete'] === 'function') {
+      try { document.fonts['delete'](item.face); } catch (e) {}
+    }
+    if (wasSelected) {
+      state.fontId = DEFAULT.fontId;
+      ensureFamily(fontById(state.fontId).family);
+    }
+    renderFontGrids();
+    draw();
+    if (wasSelected) preloadFont(fontById(state.fontId).family, state.text);
+    idbDeleteFont(id).then(function () {
+      toast('폰트를 지웠어요.');
+    }, function () {
+      toast(dbBroken ? '이번 화면에서 지웠어요. 저장 기능을 쓸 수 없어요.'
+        : '이번 화면에서 지웠어요. 새로 열면 다시 보일 수 있어요.');
+    });
+  }
+
+  function mineRow(item) {
+    var row = document.createElement('div');
+    row.className = 'mine-row';
+    row.setAttribute('data-id', item.id);
+
+    if (editingId === item.id) {
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'mine-input';
+      input.value = item.name;
+      input.maxLength = 24;
+      input.spellcheck = false;
+      input.setAttribute('aria-label', '폰트 이름');
+
+      var finish = function (save) {
+        if (editingId !== item.id) return;
+        editingId = null;
+        if (save) applyRename(item.id, input.value);
+        else renderFontGrids();
+      };
+
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); finish(true); }
+        else if (e.key === 'Escape' || e.keyCode === 27) { finish(false); }
+      });
+      input.addEventListener('blur', function () {
+        setTimeout(function () { finish(true); }, 80);
+      });
+
+      var ok = document.createElement('button');
+      ok.type = 'button';
+      ok.className = 'mine-btn ok';
+      ok.textContent = '저장';
+      ok.setAttribute('aria-label', '이름 저장');
+      ok.addEventListener('click', function () { finish(true); });
+
+      var cancel = document.createElement('button');
+      cancel.type = 'button';
+      cancel.className = 'mine-btn';
+      cancel.textContent = '✕';
+      cancel.setAttribute('aria-label', '이름 수정 취소');
+      cancel.addEventListener('click', function () { finish(false); });
+
+      row.appendChild(input);
+      row.appendChild(ok);
+      row.appendChild(cancel);
+
+      setTimeout(function () {
+        try { input.focus(); if (input.select) input.select(); } catch (e) {}
+      }, 30);
+      return row;
+    }
+
+    var pick = document.createElement('button');
+    pick.type = 'button';
+    pick.className = 'mine-pick' + (state.fontId === item.id ? ' on' : '');
+    pick.dataset.id = item.id;
+    pick.style.setProperty('--f', cssFamily(item.family));
+    pick.setAttribute('aria-label', item.name + ' 글씨체 적용');
+    var nm = document.createElement('span');
+    nm.className = 'mine-name';
+    nm.textContent = item.name;
+    pick.appendChild(nm);
+    pick.addEventListener('click', function () { selectFont(item.id); });
+
+    var edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'mine-btn edit';
+    edit.textContent = '✏️';
+    edit.setAttribute('aria-label', item.name + ' 이름 바꾸기');
+    edit.addEventListener('click', function () { startRename(item.id); });
+
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'mine-btn del';
+    del.textContent = '✕';
+    del.dataset.label = item.name + ' 삭제';
+    del.setAttribute('aria-label', item.name + ' 삭제');
+    del.addEventListener('click', function () {
+      if (del.dataset.arm === '1') {
+        disarmDelete();
+        deleteCustomFont(item.id);
+        return;
+      }
+      armDelete(del, item.id);
+    });
+
+    row.appendChild(pick);
+    row.appendChild(edit);
+    row.appendChild(del);
+    return row;
+  }
+
+  function renderMineList() {
+    var list = $('mineList');
+    var label = $('mineLabel');
+    list.textContent = '';
+    if (!customFonts.length) {
+      editingId = null;
+      label.hidden = true;
+      list.hidden = true;
+      return;
+    }
+    label.hidden = false;
+    list.hidden = false;
+    for (var i = 0; i < customFonts.length; i++) list.appendChild(mineRow(customFonts[i]));
   }
 
   /* ================= 이벤트 ================= */
@@ -1124,6 +1527,8 @@
     canvas.classList.toggle('transparent', !state.bg);
     fitStage();
     draw();
+
+    restoreCustomFonts().then(null, function () { /* 저장소를 못 쓰면 이번 화면에서만 */ });
 
     setTimeout(loadRestInBackground, 700);
     setTimeout(function () {
