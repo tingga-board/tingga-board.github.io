@@ -136,6 +136,8 @@
 
   .gsub { margin: 12px 0 6px; font-size: 10.5px; letter-spacing: .04em; color: #B29C84; }
   .gsub:first-of-type { margin-top: 0; }
+  /* 내 폰트 목록이 비어 있으면 그 자리를 '직접 불러오기'가 맨 위에서 시작한다 */
+  #mineList[hidden] + .gsub { margin-top: 0; }
   .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
   .chip {
     position: relative; display: flex; align-items: center; justify-content: center;
@@ -366,20 +368,20 @@
           <button class="mini edit-toggle" id="editDefaults" type="button" aria-pressed="false">편집</button>
         </span>
       </h2>
-      <div class="gsub" id="koLabel">한글</div>
-      <div class="grid" id="gridKo"></div>
-      <div class="gsub" id="enLabel">영문</div>
-      <div class="grid" id="gridEn"></div>
-      <p class="edit-note" id="editNote" hidden>지울 글씨체를 누르면 '삭제?'로 바뀌어요. 한 번 더 누르면 목록에서 사라지고, 아래에서 언제든 되돌릴 수 있어요.</p>
       <div class="gsub" id="mineLabel" hidden>내 폰트</div>
       <div class="mine-list" id="mineList" hidden></div>
-      <div class="gsub">직접 불러오기</div>
+      <div class="gsub" id="importLabel">직접 불러오기</div>
       <div class="grid">
         <button class="chip add" id="addFont" type="button">+ 폰트 파일</button>
       </div>
       <div class="restore-row">
         <button class="restore-link" id="restoreDefaults" type="button" hidden>기본 폰트 다시 불러오기</button>
       </div>
+      <div class="gsub" id="koLabel">한글</div>
+      <div class="grid" id="gridKo"></div>
+      <div class="gsub" id="enLabel">영문</div>
+      <div class="grid" id="gridEn"></div>
+      <p class="edit-note" id="editNote" hidden>지울 글씨체를 누르면 '삭제?'로 바뀌어요. 한 번 더 누르면 목록에서 사라지고, 아래에서 언제든 되돌릴 수 있어요.</p>
       <p class="note">.ttf · .otf · .woff 파일을 고르면 바로 적용돼요. 불러온 폰트는 이 기기(브라우저)에 저장되어 새로 열어도 유지돼요. ✏️ 로 이름을 바꾸고 ✕ 로 지울 수 있어요. 기본 글씨체는 '편집'을 눌러 정리할 수 있어요.</p>
       <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden>
     </section>
