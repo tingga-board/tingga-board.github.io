@@ -617,6 +617,7 @@
   };
 
   var lastSize = DEFAULT.size;          /* 새 문구가 따르는 마지막 글자 크기 */
+  var storedSize = DEFAULT.size;        /* 이미 저장해 둔 크기 (같은 값을 다시 쓰지 않는다) */
   var itemSeq = 0;
 
   function readLastSize() {
@@ -633,6 +634,8 @@
   function writeLastSize(v) {
     if (!isFinite(v)) return;
     lastSize = Math.round(v);
+    if (lastSize === storedSize) return;
+    storedSize = lastSize;
     try { window.localStorage.setItem(SIZE_KEY, String(lastSize)); } catch (e) {}
   }
 
@@ -2379,6 +2382,7 @@
   function init() {
     hiddenDefaults = loadHiddenDefaults();
     lastSize = readLastSize();
+    storedSize = lastSize;
 
     var start = fontById(DEFAULT.fontId) || firstAvailableFont();
     var first = makeItem({ text: DEFAULT.text, size: lastSize, fontId: start ? start.id : '' });
