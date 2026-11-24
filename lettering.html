@@ -160,6 +160,49 @@
   }
   .ex:active { background: #FBF1E2; }
 
+  /* ---------- 문구 여러 개 ---------- */
+  .msg-list { display: flex; flex-direction: column; gap: 9px; }
+  .msg-item {
+    padding: 7px 9px 9px; border-radius: 16px;
+    border: 1px solid #EFE3D1; background: #FFFDF9;
+    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .msg-item.on {
+    border-color: #DCBC8E; background: #FFFAF1;
+    box-shadow: 0 0 0 2px rgba(220, 188, 142, .20);
+  }
+  .msg-top { display: flex; align-items: center; gap: 6px; margin: 0 1px 5px; }
+  .msg-no {
+    flex: 0 0 auto; font-size: 10.5px; font-weight: 700;
+    letter-spacing: .03em; color: #B4A08A;
+  }
+  .msg-item.on .msg-no { color: #A9703F; }
+  .msg-meta {
+    flex: 1 1 auto; min-width: 0; text-align: right;
+    font-size: 10.5px; color: #BCA894; letter-spacing: -.01em;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  }
+  .msg-del {
+    position: relative; flex: 0 0 auto; width: 25px; height: 25px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: #FBEAE4; border: 1px solid #EED2C6;
+    color: #B0715F; font-size: 10px; line-height: 1;
+  }
+  /* 보이는 크기는 그대로 두고 손가락이 닿는 자리만 넓힌다 */
+  .msg-del::after { content: ""; position: absolute; inset: -9px; border-radius: 50%; }
+  .msg-del:active { background: #F6DDD4; }
+  .msg-item textarea { min-height: 46px; }
+  .msg-add {
+    display: block; width: 100%; margin-top: 9px; padding: 10px 12px;
+    border-radius: 14px; border: 1px dashed #DCC7AC; background: #FFFDF9;
+    font-size: 13px; font-weight: 650; letter-spacing: -.01em; color: #A9703F;
+  }
+  .msg-add:active { background: #FBF1E2; }
+  .msg-hint {
+    margin: 9px 2px 0; font-size: 10.5px; line-height: 1.55;
+    color: #B29C84; letter-spacing: -.01em;
+  }
+
   .gsub { margin: 12px 0 6px; font-size: 10.5px; letter-spacing: .04em; color: #B29C84; }
   .gsub:first-of-type { margin-top: 0; }
   /* 내 폰트 목록이 비어 있으면 그 자리를 '직접 불러오기'가 맨 위에서 시작한다 */
@@ -378,8 +421,9 @@
 
   <div class="sheet" id="sheet">
     <section class="card">
-      <h2 class="h">문구</h2>
-      <textarea id="text" rows="2" maxlength="140" spellcheck="false" placeholder="예: 생일 축하해">생일 축하해</textarea>
+      <h2 class="h"><span>문구</span><span class="hint" id="msgCount" hidden></span></h2>
+      <div class="msg-list" id="msgList"></div>
+      <button class="msg-add" id="addMsg" type="button">＋ 문구 추가</button>
       <div class="examples" id="examples">
         <button class="ex" type="button">Happy Birthday</button>
         <button class="ex" type="button">생일 축하해</button>
@@ -388,6 +432,7 @@
         <button class="ex" type="button">졸업 축하해</button>
         <button class="ex" type="button">우리 딸 첫돌</button>
       </div>
+      <p class="msg-hint">문구 칸을 누르면 그 문구가 선택돼요. 글씨체·크기·곡률·위치는 선택된 문구에 적용돼요.</p>
     </section>
 
     <section class="card">
@@ -417,7 +462,7 @@
     </section>
 
     <section class="card">
-      <h2 class="h">크기와 모양</h2>
+      <h2 class="h"><span>크기와 모양</span><span class="hint" id="targetHint" hidden></span></h2>
 
       <div class="ctrl">
         <div class="ctrl-head"><span class="ctrl-label">글씨 크기</span><span class="ctrl-val" id="sizeVal">50px</span></div>
@@ -432,9 +477,9 @@
       <div class="ctrl">
         <div class="ctrl-head">
           <span class="ctrl-label">곡률</span>
-          <span class="ctrl-val" id="curveVal">아치 +22</span>
+          <span class="ctrl-val" id="curveVal">직선</span>
         </div>
-        <input type="range" id="curve" min="-100" max="100" step="1" value="22" aria-label="곡률">
+        <input type="range" id="curve" min="-100" max="100" step="1" value="0" aria-label="곡률">
         <div class="scale"><span>원형 -100</span><span>직선 0</span><span>원형 +100</span></div>
         <button class="mini" id="curveReset" type="button" style="margin-top:7px">직선으로 되돌리기</button>
       </div>
@@ -452,6 +497,7 @@
           <button type="button" data-v="right">오른쪽</button>
         </div>
       </div>
+      <p class="note">글씨 크기는 마지막으로 정한 값으로 다음에 열 때도 시작해요. 곡률은 열 때마다 항상 직선(0)으로 시작해요.</p>
     </section>
 
     <section class="card">
@@ -545,27 +591,85 @@
   /* 글자 위치는 저장 이미지와 똑같이 1080×1080 기준 좌표로 다룬다 */
   var STAGE_UNIT = 1080;
   var MAX_OFFSET = 520;                 /* 1080 기준, 가운데에서 가장자리까지 */
+  var SIZE_KEY = 'buttertree-lettering-size';   /* 마지막으로 정한 글자 크기 */
   var DEFAULT = {
     text: '생일 축하해',
     fontId: 'jua',
     size: 50,
     spacing: 0,
-    curve: 22,
+    curve: 0,          /* 곡률은 저장하지 않는다 — 열 때마다 항상 직선(0)으로 시작 */
     lineHeight: 1.15,
     align: 'center',
     color: '#4A3326',
     bg: '#FFF6E3',
-    guide: true,
-    offsetX: 0,
-    offsetY: 0
+    guide: true
   };
 
+  /* 문구 여러 개를 각자의 글씨체·크기·곡률·위치로 그린다.
+     state.items 안의 문구 하나가 그 설정을 모두 들고 있고,
+     글씨색·케이크 바탕·원형 가이드는 전체 공통이다. */
   var state = {
-    text: DEFAULT.text, fontId: DEFAULT.fontId, size: DEFAULT.size,
-    spacing: DEFAULT.spacing, curve: DEFAULT.curve, lineHeight: DEFAULT.lineHeight,
-    align: DEFAULT.align, color: DEFAULT.color, bg: DEFAULT.bg, guide: DEFAULT.guide,
-    offsetX: DEFAULT.offsetX, offsetY: DEFAULT.offsetY
+    items: [],
+    selId: '',
+    color: DEFAULT.color,
+    bg: DEFAULT.bg,
+    guide: DEFAULT.guide
   };
+
+  var lastSize = DEFAULT.size;          /* 새 문구가 따르는 마지막 글자 크기 */
+  var itemSeq = 0;
+
+  function readLastSize() {
+    try {
+      var v = parseFloat(window.localStorage.getItem(SIZE_KEY));
+      if (!isFinite(v)) return DEFAULT.size;
+      v = Math.round(v);
+      if (v < 16) v = 16;
+      if (v > 120) v = 120;
+      return v;
+    } catch (e) { return DEFAULT.size; }
+  }
+
+  function writeLastSize(v) {
+    if (!isFinite(v)) return;
+    lastSize = Math.round(v);
+    try { window.localStorage.setItem(SIZE_KEY, String(lastSize)); } catch (e) {}
+  }
+
+  function makeItem(over) {
+    var o = over || {};
+    return {
+      id: 'm' + (++itemSeq),
+      text: o.text != null ? String(o.text) : '',
+      fontId: o.fontId != null ? String(o.fontId) : '',
+      size: o.size != null ? o.size : lastSize,
+      spacing: o.spacing != null ? o.spacing : DEFAULT.spacing,
+      curve: o.curve != null ? o.curve : DEFAULT.curve,
+      lineHeight: o.lineHeight != null ? o.lineHeight : DEFAULT.lineHeight,
+      align: o.align || DEFAULT.align,
+      offsetX: 0,
+      offsetY: 0,
+      stackCY: 0      /* 쌓였을 때 이 문구의 세로 자리 (드래그 제한 기준) */
+    };
+  }
+
+  function itemById(id) {
+    for (var i = 0; i < state.items.length; i++) if (state.items[i].id === id) return state.items[i];
+    return null;
+  }
+
+  function selItem() {
+    var it = itemById(state.selId);
+    if (it) return it;
+    it = state.items.length ? state.items[0] : null;
+    state.selId = it ? it.id : '';
+    return it;
+  }
+
+  function selFontId() {
+    var it = selItem();
+    return it ? it.fontId : '';
+  }
 
   var customFonts = [];
 
@@ -619,7 +723,6 @@
   var stageInner = $('stageInner');
   var fitBadge = $('fitBadge');
   var emptyHint = $('emptyHint');
-  var textArea = $('text');
   var toastEl = $('toast');
 
   var stageW = 320, stageH = 320;
@@ -688,8 +791,28 @@
     return left.length ? left[0] : null;
   }
 
-  function currentFont() {
-    return fontById(state.fontId) || firstAvailableFont() || FALLBACK_FONT;
+  /* 문구 하나가 실제로 그릴 글씨체 */
+  function fontFor(it) {
+    return (it && fontById(it.fontId)) || firstAvailableFont() || FALLBACK_FONT;
+  }
+
+  /* 쓸 수 없게 된 글씨체(숨김·삭제)를 쓰던 문구를 남은 글씨체로 바꿔 준다 */
+  function ensureItemFonts() {
+    for (var i = 0; i < state.items.length; i++) {
+      var it = state.items[i];
+      if (fontById(it.fontId)) continue;
+      var next = fontById(DEFAULT.fontId) || firstAvailableFont();
+      it.fontId = next ? next.id : '';
+      if (next && !next.custom) ensureFamily(next.family);
+    }
+  }
+
+  /* 모든 문구의 글씨체를 미리 읽어 둔다 */
+  function preloadAll() {
+    for (var i = 0; i < state.items.length; i++) {
+      var it = state.items[i];
+      preloadFont(fontFor(it).family, it.text, it.size);
+    }
   }
 
   function cssFamily(family) {
@@ -698,13 +821,13 @@
   }
 
   var fontLoadSeq = 0;
-  function preloadFont(family, text) {
+  function preloadFont(family, text, size) {
     if (!family) return Promise.resolve();
     if (!document.fonts || !document.fonts.load) return Promise.resolve();
     var sample = (text || 'A') + ' Aa 가힣 0123';
     var p;
     try {
-      p = document.fonts.load('400 ' + Math.max(16, Math.round(state.size)) + 'px "' + family + '"', sample);
+      p = document.fonts.load('400 ' + Math.max(16, Math.round(size || DEFAULT.size)) + 'px "' + family + '"', sample);
     } catch (e) {
       return Promise.resolve();
     }
@@ -852,9 +975,82 @@
     return { glyphs: all, bbox: gb };
   }
 
+  /* 문구 하나를 재어 둔다 (그릴 글씨가 없으면 null) */
+  function buildItemLayout(it) {
+    var f = fontFor(it);
+    var text = String(it.text == null ? '' : it.text);
+    if (!text.replace(/\s/g, '')) return null;
+    var layout = buildLayout({
+      text: text,
+      family: f.family,
+      size: it.size,
+      spacing: it.spacing,
+      curve: it.curve,
+      lineHeight: it.lineHeight,
+      align: it.align
+    });
+    if (!layout.glyphs.length) return null;
+    return { item: it, font: f, glyphs: layout.glyphs, bbox: layout.bbox };
+  }
+
+  /* 문구 사이 세로 여백 — 두 문구 크기의 합에 비례 (한 문구 안 줄 간격과 비슷한 느낌) */
+  var GAP_RATIO = 0.20;
+
+  /* 문구들을 위에서 아래로 쌓고, 쌓인 덩어리 전체를 가운데로 맞춘다.
+     문구마다 따로 정한 위치(offset)는 여기 넣지 않고 그릴 때 더한다 —
+     그래야 하나를 끌어도 그 문구만 움직이고 나머지는 제자리에 있다. */
+
+  function layoutAll() {
+    var blocks = [], i;
+    for (i = 0; i < state.items.length; i++) {
+      var blk = buildItemLayout(state.items[i]);
+      if (blk) blocks.push(blk);
+    }
+    if (!blocks.length) return { blocks: [], bbox: null };
+
+    var u = { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity };
+    var prevBottom = 0;
+    for (var b = 0; b < blocks.length; b++) {
+      var g = blocks[b], bb = g.bbox;
+      var dx = -(bb.l + bb.r) / 2;                 /* 가로 가운데 */
+      var dy;
+      if (b === 0) {
+        dy = -bb.t;                              /* 첫 문구의 위쪽을 0에서 시작 */
+      } else {
+        var prev = blocks[b - 1];
+        var gap = Math.max(8, GAP_RATIO * (prev.item.size + g.item.size));
+        dy = (prevBottom + gap) - bb.t;
+      }
+      for (var k = 0; k < g.glyphs.length; k++) {
+        g.glyphs[k].px += dx;
+        g.glyphs[k].py += dy;
+      }
+      bb.l += dx; bb.r += dx; bb.t += dy; bb.b += dy;
+      prevBottom = bb.b;
+      if (bb.l < u.l) u.l = bb.l;
+      if (bb.r > u.r) u.r = bb.r;
+      if (bb.t < u.t) u.t = bb.t;
+      if (bb.b > u.b) u.b = bb.b;
+    }
+
+    /* 덩어리 전체의 가운데를 원점으로 옮긴다 */
+    var cx = (u.l + u.r) / 2, cy = (u.t + u.b) / 2;
+    for (var m = 0; m < blocks.length; m++) {
+      var blk2 = blocks[m], b2 = blk2.bbox;
+      for (var n = 0; n < blk2.glyphs.length; n++) {
+        blk2.glyphs[n].px -= cx;
+        blk2.glyphs[n].py -= cy;
+      }
+      b2.l -= cx; b2.r -= cx; b2.t -= cy; b2.b -= cy;
+      blk2.item.stackCY = (b2.t + b2.b) / 2;
+    }
+    return { blocks: blocks, bbox: { l: u.l - cx, t: u.t - cy, r: u.r - cx, b: u.b - cy } };
+  }
+
   /* ================= 그리기 ================= */
-  function renderScene(c, W, H, showGuide) {
-    var f = currentFont();
+  var hitBoxes = [];        /* 미리보기에서 손가락이 어느 문구를 잠았는지 */
+
+  function renderScene(c, W, H, showGuide, preview) {
     c.save();
     c.clearRect(0, 0, W, H);
 
@@ -876,48 +1072,82 @@
       c.setLineDash([]);
     }
 
-    var layout = buildLayout({
-      text: state.text,
-      family: f.family,
-      size: state.size,
-      spacing: state.spacing,
-      curve: state.curve,
-      lineHeight: state.lineHeight,
-      align: state.align
-    });
+    var lay = layoutAll();
+    var boxes = [];
+    var s = 1;
 
-    var b = layout.bbox;
-    var bw = Math.max(1, b.r - b.l);
-    var bh = Math.max(1, b.b - b.t);
-    var s = Math.min(1, (W * 0.90) / bw, (H * 0.90) / bh);
+    if (lay.blocks.length) {
+      var b = lay.bbox;
+      var bw = Math.max(1, b.r - b.l);
+      var bh = Math.max(1, b.b - b.t);
+      s = Math.min(1, (W * 0.90) / bw, (H * 0.90) / bh);
 
-    /* 1080 기준 오프셋을 지금 그리는 크기로 환산한다 (미리보기·저장 동일) */
-    var ox = state.offsetX * (W / STAGE_UNIT);
-    var oy = state.offsetY * (H / STAGE_UNIT);
+      for (var i = 0; i < lay.blocks.length; i++) {
+        var blk = lay.blocks[i];
+        /* 1080 기준 오프셋을 지금 그리는 크기로 환산한다 (미리보기·저장 동일) */
+        var ox = blk.item.offsetX * (W / STAGE_UNIT);
+        var oy = blk.item.offsetY * (H / STAGE_UNIT);
+        var tx = W / 2 - ((b.l + b.r) / 2) * s + ox;
+        var ty = H / 2 - ((b.t + b.b) / 2) * s + oy;
 
-    if (layout.glyphs.length) {
-      c.save();
-      c.translate(W / 2 - ((b.l + b.r) / 2) * s + ox, H / 2 - ((b.t + b.b) / 2) * s + oy);
-      c.scale(s, s);
-      c.fillStyle = state.color;
-      c.textAlign = 'left';
-      c.textBaseline = 'alphabetic';
-      c.font = '400 ' + state.size + 'px ' + cssFamily(f.family);
-
-      for (var i = 0; i < layout.glyphs.length; i++) {
-        var g = layout.glyphs[i];
-        if (g.ch === ' ' || g.ch === '\t') continue;
         c.save();
-        c.translate(g.px, g.py);
-        if (g.rot) c.rotate(g.rot);
-        c.fillText(g.ch, -g.w / 2, 0);
+        c.translate(tx, ty);
+        c.scale(s, s);
+        c.fillStyle = state.color;
+        c.textAlign = 'left';
+        c.textBaseline = 'alphabetic';
+        c.font = '400 ' + blk.item.size + 'px ' + cssFamily(blk.font.family);
+
+        for (var g = 0; g < blk.glyphs.length; g++) {
+          var gl = blk.glyphs[g];
+          if (gl.ch === ' ' || gl.ch === '\t') continue;
+          c.save();
+          c.translate(gl.px, gl.py);
+          if (gl.rot) c.rotate(gl.rot);
+          c.fillText(gl.ch, -gl.w / 2, 0);
+          c.restore();
+        }
         c.restore();
+
+        boxes.push({
+          id: blk.item.id,
+          l: tx + blk.bbox.l * s, t: ty + blk.bbox.t * s,
+          r: tx + blk.bbox.r * s, b: ty + blk.bbox.b * s
+        });
       }
-      c.restore();
+
+      /* 문구가 둘 이상일 때만, 고른 문구를 점선으로 살짝 보여 준다 (저장 이미지엔 없음) */
+      if (preview && boxes.length > 1) {
+        var cur = null;
+        for (var q = 0; q < boxes.length; q++) if (boxes[q].id === state.selId) cur = boxes[q];
+        if (cur) {
+          var pad = 4, rad = 8;
+          var x0 = cur.l - pad, y0 = cur.t - pad, x1 = cur.r + pad, y1 = cur.b + pad;
+          c.save();
+          c.beginPath();
+          c.moveTo(x0 + rad, y0);
+          c.lineTo(x1 - rad, y0);
+          c.quadraticCurveTo(x1, y0, x1, y0 + rad);
+          c.lineTo(x1, y1 - rad);
+          c.quadraticCurveTo(x1, y1, x1 - rad, y1);
+          c.lineTo(x0 + rad, y1);
+          c.quadraticCurveTo(x0, y1, x0, y1 - rad);
+          c.lineTo(x0, y0 + rad);
+          c.quadraticCurveTo(x0, y0, x0 + rad, y0);
+          c.closePath();
+          c.setLineDash([5, 4]);
+          c.lineWidth = 1.5;
+          c.strokeStyle = 'rgba(185,128,90,0.55)';
+          c.stroke();
+          c.setLineDash([]);
+          c.restore();
+        }
+      }
     }
 
+    if (preview) hitBoxes = boxes;
     c.restore();
-    return s;
+    return lay.blocks.length ? s : 1;
   }
 
   var drawToken = 0;
@@ -932,18 +1162,31 @@
 
   function paint() {
     var token = ++drawToken;
-    var f = currentFont();
-    var text = state.text;
+    var jobs = [];
+    for (var i = 0; i < state.items.length; i++) {
+      var it = state.items[i];
+      var f = fontFor(it);
+      if (f.family && !f.custom && fontById(it.fontId)) ensureFamily(f.family);
+      jobs.push(preloadFont(f.family, it.text, it.size));
+    }
 
-    Promise.resolve(preloadFont(f.family, text)).then(function () {
+    Promise.resolve(Promise.all(jobs)).then(function () {
       if (token !== drawToken) return;
-      var s = renderScene(ctx, stageW, stageH, state.guide);
+      var s = renderScene(ctx, stageW, stageH, state.guide, true);
       updateBadges(s);
     });
   }
 
   function updateBadges(s) {
-    var hasText = state.text.replace(/\s/g, '').length > 0;
+    var hasText = false, koWarn = false;
+    for (var i = 0; i < state.items.length; i++) {
+      var it = state.items[i];
+      var t = String(it.text == null ? '' : it.text);
+      if (!t.replace(/\s/g, '').length) continue;
+      hasText = true;
+      if (/[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(t) && !fontFor(it).ko) koWarn = true;
+    }
+
     emptyHint.hidden = hasText;
 
     if (hasText && s < 0.985) {
@@ -953,9 +1196,7 @@
       fitBadge.hidden = true;
     }
 
-    var f = currentFont();
-    var hasKo = /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(state.text);
-    $('fontNote').hidden = !(hasKo && !f.ko);
+    $('fontNote').hidden = !koWarn;
   }
 
   /* ================= 화면 크기 ================= */
@@ -982,42 +1223,82 @@
   /* ================= 글자 위치 이동(드래그) ================= */
   var drag = null;
 
-  function clampOffset(v) {
-    if (!isFinite(v)) return 0;
-    if (v < -MAX_OFFSET) return -MAX_OFFSET;
-    if (v > MAX_OFFSET) return MAX_OFFSET;
-    return v;
+  /* 문구의 기본 자리(stackCY)를 기준으로, 가운데에서 너무 멀어지지 않게 막는다 */
+  function clampOffsetFor(it, x, y) {
+    var sy = (it && isFinite(it.stackCY)) ? it.stackCY : 0;
+    if (!isFinite(x)) x = 0;
+    if (!isFinite(y)) y = 0;
+    if (x < -MAX_OFFSET) x = -MAX_OFFSET;
+    if (x > MAX_OFFSET) x = MAX_OFFSET;
+    var lo = -MAX_OFFSET - sy, hi = MAX_OFFSET - sy;
+    if (lo > hi) { var t = lo; lo = hi; hi = t; }
+    if (y < lo) y = lo;
+    if (y > hi) y = hi;
+    return [x, y];
   }
 
   function syncPosUI() {
     var btn = $('posReset');
     if (!btn) return;
-    btn.hidden = !(state.offsetX || state.offsetY);
+    var it = selItem();
+    var moved = !!it && (it.offsetX !== 0 || it.offsetY !== 0);
+    var many = state.items.length > 1;
+    btn.hidden = !moved;
+    btn.textContent = many ? '이 문구 가운데로' : '위치 가운데로';
+    btn.setAttribute('aria-label', many ? '선택한 문구를 가운데로' : '글자 위치를 가운데로');
   }
 
-  function setOffset(x, y) {
-    var nx = Math.round(clampOffset(x) * 10) / 10;
-    var ny = Math.round(clampOffset(y) * 10) / 10;
-    /* 손을 뗀 자리가 가운데 언저리면 딱 가운데로 붙여 준다 */
+  function setItemOffset(it, x, y) {
+    if (!it) return false;
+    var c = clampOffsetFor(it, Math.round(x * 10) / 10, Math.round(y * 10) / 10);
+    var nx = c[0], ny = c[1];
+    /* 손을 뗀 자리가 제자리 언저리면 딱 제자리로 붙여 준다 */
     if (nx > -3 && nx < 3) nx = 0;
     if (ny > -3 && ny < 3) ny = 0;
-    if (nx === state.offsetX && ny === state.offsetY) return false;
-    state.offsetX = nx;
-    state.offsetY = ny;
+    if (nx === it.offsetX && ny === it.offsetY) return false;
+    it.offsetX = nx;
+    it.offsetY = ny;
     syncPosUI();
     draw();
     return true;
   }
 
   function recenter() {
-    if (!state.offsetX && !state.offsetY) return;
-    setOffset(0, 0);
+    var it = selItem();
+    if (!it || (!it.offsetX && !it.offsetY)) return;
+    setItemOffset(it, 0, 0);
+  }
+
+  /* 캔버스에서 누른 자리에 있는 문구 (가까운 쪽) */
+  function pickItemAt(x, y) {
+    var best = null, bestD = Infinity, i;
+    for (i = 0; i < hitBoxes.length; i++) {
+      var h = hitBoxes[i];
+      if (x < h.l - 14 || x > h.r + 14 || y < h.t - 14 || y > h.b + 14) continue;
+      var d = Math.abs(x - (h.l + h.r) / 2) + Math.abs(y - (h.t + h.b) / 2);
+      if (d < bestD) { bestD = d; best = h; }
+    }
+    if (best) return best.id;
+    /* 빈 곳을 눌러도 가장 가까운 문구를 잡는다 */
+    for (i = 0; i < hitBoxes.length; i++) {
+      var g = hitBoxes[i];
+      var px = Math.max(g.l, Math.min(x, g.r));
+      var py = Math.max(g.t, Math.min(y, g.b));
+      var d2 = (px - x) * (px - x) + (py - y) * (py - y);
+      if (d2 < bestD) { bestD = d2; best = g; }
+    }
+    return best ? best.id : null;
   }
 
   function startDrag(e) {
     if (drag) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, ox: state.offsetX, oy: state.offsetY };
+    var r = canvas.getBoundingClientRect();
+    var id = pickItemAt(e.clientX - r.left, e.clientY - r.top);
+    var it = id ? itemById(id) : null;
+    if (!it) return;
+    if (state.selId !== id) selectItem(id);
+    drag = { id: e.pointerId, itemId: id, x: e.clientX, y: e.clientY, ox: it.offsetX, oy: it.offsetY };
     canvas.classList.add('dragging');
     try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
     if (e.cancelable) e.preventDefault();
@@ -1025,9 +1306,11 @@
 
   function moveDrag(e) {
     if (!drag || e.pointerId !== drag.id) return;
+    var it = itemById(drag.itemId);
+    if (!it) { endDrag(e); return; }
     /* 화면 픽셀 이동량 → 1080 기준 좌표 이동량 (미리보기 배율과 무관하게 1:1) */
     var k = STAGE_UNIT / Math.max(1, stageW);
-    setOffset(drag.ox + (e.clientX - drag.x) * k, drag.oy + (e.clientY - drag.y) * k);
+    setItemOffset(it, drag.ox + (e.clientX - drag.x) * k, drag.oy + (e.clientY - drag.y) * k);
     if (e.cancelable) e.preventDefault();
   }
 
@@ -1042,6 +1325,191 @@
   /* ================= UI 만들기 ================= */
   var editMode = false;
   var chipArmTimer = 0;
+
+  /* ================= 문구 칸 ================= */
+  var MSG_PLACEHOLDERS = ['예: 생일 축하해', '예: Happy Birthday', '예: 사랑해', '예: 축하해'];
+
+  function metaText(it) {
+    var f = fontFor(it);
+    var s = f.name + ' ' + Math.round(it.size) + 'px';
+    if (it.curve) s += ' · ' + fmtCurve(it.curve);
+    return s;
+  }
+
+  function textAreaFor(id) {
+    var row = $('msgList').querySelector('.msg-item[data-id="' + id + '"]');
+    return row ? row.querySelector('textarea') : null;
+  }
+
+  function selIndex() {
+    for (var i = 0; i < state.items.length; i++) if (state.items[i].id === state.selId) return i;
+    return -1;
+  }
+
+  function msgRow(it, idx) {
+    var row = document.createElement('div');
+    row.className = 'msg-item';
+    row.dataset.id = it.id;
+
+    var top = document.createElement('div');
+    top.className = 'msg-top';
+
+    var no = document.createElement('span');
+    no.className = 'msg-no';
+    no.textContent = '문구 ' + (idx + 1);
+
+    var meta = document.createElement('span');
+    meta.className = 'msg-meta';
+
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'msg-del';
+    del.textContent = '✕';
+    del.setAttribute('aria-label', '문구 ' + (idx + 1) + ' 삭제');
+    del.addEventListener('click', function (e) {
+      e.stopPropagation();
+      removeItem(it.id);
+    });
+
+    top.appendChild(no);
+    top.appendChild(meta);
+    top.appendChild(del);
+
+    var ta = document.createElement('textarea');
+    ta.rows = 2;
+    ta.maxLength = 140;
+    ta.spellcheck = false;
+    ta.value = it.text;
+    ta.placeholder = MSG_PLACEHOLDERS[idx % MSG_PLACEHOLDERS.length];
+    ta.setAttribute('aria-label', '문구 ' + (idx + 1));
+    ta.addEventListener('input', function () {
+      it.text = ta.value;
+      if (state.selId !== it.id) selectItem(it.id);
+      syncMsgSel();
+      draw();
+    });
+    ta.addEventListener('focus', function () {
+      if (state.selId !== it.id) selectItem(it.id);
+    });
+
+    row.addEventListener('click', function () {
+      if (state.selId !== it.id) selectItem(it.id);
+    });
+
+    row.appendChild(top);
+    row.appendChild(ta);
+    return row;
+  }
+
+  function rebuildMessages() {
+    var list = $('msgList');
+    list.textContent = '';
+    for (var i = 0; i < state.items.length; i++) list.appendChild(msgRow(state.items[i], i));
+    syncMsgSel();
+  }
+
+  /* 문구 칸의 선택 표시·순번·요약을 맞추고, 첫 칸에만 id="text" 를 둔다 */
+  function syncMsgSel() {
+    var rows = $('msgList').querySelectorAll('.msg-item');
+    var one = state.items.length < 2;
+
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var it = itemById(row.dataset.id);
+      if (!it) continue;
+      row.classList.toggle('on', it.id === state.selId);
+
+      var del = row.querySelector('.msg-del');
+      if (del) {
+        del.hidden = one;
+        del.setAttribute('aria-label', '문구 ' + (i + 1) + ' 삭제');
+      }
+      var no = row.querySelector('.msg-no');
+      if (no) no.textContent = '문구 ' + (i + 1);
+      var meta = row.querySelector('.msg-meta');
+      if (meta) meta.textContent = metaText(it);
+
+      var ta = row.querySelector('textarea');
+      if (ta) {
+        ta.setAttribute('aria-label', '문구 ' + (i + 1));
+        if (i === 0) { if (ta.id !== 'text') ta.id = 'text'; }
+        else if (ta.id === 'text') ta.removeAttribute('id');
+      }
+    }
+
+    var cnt = $('msgCount');
+    cnt.textContent = state.items.length + '개';
+    cnt.hidden = one;
+
+    var th = $('targetHint');
+    var cur = selIndex();
+    th.hidden = one;
+    th.textContent = cur >= 0 ? '문구 ' + (cur + 1) + '에 적용' : '';
+  }
+
+  function selectItem(id) {
+    var it = itemById(id);
+    if (!it) return;
+    var changed = state.selId !== id;
+    state.selId = id;
+    var f = fontFor(it);
+    if (f.family && !f.custom) ensureFamily(f.family);
+    syncChips();
+    syncMsgSel();
+    if (changed) {
+      syncInputs();
+      syncLabels();
+      preloadFont(f.family, it.text, it.size);
+    }
+    syncPosUI();
+    draw();
+  }
+
+  function addItem() {
+    var src = selItem();
+    var it = makeItem({ text: '' });          /* 글자 크기는 마지막 값, 곡률은 직선 */
+    if (src) {
+      it.fontId = src.fontId;
+      it.spacing = src.spacing;
+      it.lineHeight = src.lineHeight;
+      it.align = src.align;
+      var sf = fontById(it.fontId);
+      if (sf && !sf.custom) ensureFamily(sf.family);
+    }
+    state.items.push(it);
+    state.selId = it.id;
+    rebuildMessages();
+    syncInputs();
+    syncLabels();
+    syncChips();
+    syncPosUI();
+    draw();
+    var ta = textAreaFor(it.id);
+    if (ta) {
+      try { ta.scrollIntoView({ block: 'center' }); } catch (e) {}
+      setTimeout(function () { try { ta.focus(); } catch (e) {} }, 80);
+    }
+    toast('문구를 추가했어요. 글씨 크기는 마지막 값, 곡률은 직선으로 시작해요.');
+  }
+
+  function removeItem(id) {
+    if (state.items.length < 2) return;
+    var idx = -1;
+    for (var i = 0; i < state.items.length; i++) if (state.items[i].id === id) { idx = i; break; }
+    if (idx < 0) return;
+    state.items.splice(idx, 1);
+    if (state.selId === id) {
+      var nxt = state.items[Math.min(idx, state.items.length - 1)];
+      state.selId = nxt ? nxt.id : '';
+    }
+    rebuildMessages();
+    syncInputs();
+    syncLabels();
+    syncChips();
+    syncPosUI();
+    draw();
+    toast('문구를 지웠어요.');
+  }
 
   function makeChip(font) {
     var b = document.createElement('button');
@@ -1140,16 +1608,15 @@
     disarmChips();
     hiddenDefaults.push(id);
     var stored = saveHiddenDefaults();
-    var wasSelected = state.fontId === id;
-    if (wasSelected) {
-      var next = firstAvailableFont();
-      state.fontId = next ? next.id : FALLBACK_FONT.id;
-      if (next && !next.custom) ensureFamily(next.family);
+    var wasSelected = selFontId() === id;
+    for (var i = 0; i < state.items.length; i++) {
+      if (state.items[i].fontId === id) state.items[i].fontId = '';
     }
+    ensureItemFonts();
     if (!visibleDefaults().length) editMode = false;
     renderFontGrids();
     draw();
-    if (wasSelected) preloadFont(currentFont().family, state.text);
+    preloadAll();
     toast(stored
       ? (wasSelected ? '쓰던 글씨체를 정리하고 다음 글씨체로 바꿨어요.' : '글씨체를 정리했어요. 아래에서 다시 불러올 수 있어요.')
       : '이번 화면에서만 정리했어요. 저장 기능을 쓸 수 없어요.');
@@ -1160,16 +1627,12 @@
     disarmChips();
     hiddenDefaults = [];
     var stored = saveHiddenDefaults();
-    if (!fontById(state.fontId)) {
-      var pick = fontById(DEFAULT.fontId) || firstAvailableFont();
-      if (pick) {
-        state.fontId = pick.id;
-        if (!pick.custom) ensureFamily(pick.family);
-      }
-    }
+    ensureItemFonts();
     renderFontGrids();
+    syncInputs();
+    syncLabels();
     draw();
-    preloadFont(currentFont().family, state.text);
+    preloadAll();
     toast(stored ? '기본 글씨체를 모두 되돌렸어요.' : '이번 화면에서만 되돌렸어요. 저장 기능을 쓸 수 없어요.');
   }
 
@@ -1181,9 +1644,10 @@
   }
 
   function syncChips() {
+    var fid = selFontId();
     var chips = document.querySelectorAll('.chip[data-id], .mine-pick[data-id]');
     for (var i = 0; i < chips.length; i++) {
-      chips[i].classList.toggle('on', chips[i].dataset.id === state.fontId);
+      chips[i].classList.toggle('on', chips[i].dataset.id === fid);
     }
   }
 
@@ -1267,35 +1731,41 @@
   }
 
   function syncLabels() {
-    $('sizeVal').textContent = Math.round(state.size) + 'px';
-    $('spacingVal').textContent = fmtSpacing(state.spacing);
-    $('curveVal').textContent = fmtCurve(state.curve);
-    $('lhVal').textContent = (Math.round(state.lineHeight * 100) / 100).toFixed(2);
+    var it = selItem();
+    $('sizeVal').textContent = Math.round(it ? it.size : lastSize) + 'px';
+    $('spacingVal').textContent = fmtSpacing(it ? it.spacing : 0);
+    $('curveVal').textContent = fmtCurve(it ? it.curve : 0);
+    $('lhVal').textContent = (Math.round((it ? it.lineHeight : DEFAULT.lineHeight) * 100) / 100).toFixed(2);
     paintRanges();
   }
 
   function syncInputs() {
-    $('size').value = state.size;
-    $('spacing').value = state.spacing;
-    $('curve').value = state.curve;
-    $('lineHeight').value = state.lineHeight;
-    textArea.value = state.text;
+    var it = selItem();
+    if (it) {
+      $('size').value = it.size;
+      $('spacing').value = it.spacing;
+      $('curve').value = it.curve;
+      $('lineHeight').value = it.lineHeight;
+    }
     $('guide').setAttribute('aria-checked', state.guide ? 'true' : 'false');
     var ab = document.querySelectorAll('#align button');
     for (var i = 0; i < ab.length; i++) {
-      ab[i].classList.toggle('on', ab[i].dataset.v === state.align);
+      ab[i].classList.toggle('on', !!it && ab[i].dataset.v === it.align);
     }
   }
 
+  /* 고른 글씨체를 지금 선택된 문구에 적용한다 */
   function selectFont(id) {
     var f = fontById(id);
     if (!f) return;
-    state.fontId = id;
+    var it = selItem();
+    if (!it) return;
+    it.fontId = id;
     if (!f.custom) ensureFamily(f.family);
     syncChips();
+    syncMsgSel();
     draw();
-    if (f.custom) return;
-    preloadFont(f.family, state.text);
+    preloadFont(f.family, it.text, it.size);
   }
 
   /* ================= 저장 ================= */
@@ -1314,9 +1784,14 @@
   function savePNG() {
     if (saving) return;
     saving = true;
-    var f = currentFont();
 
-    Promise.resolve(preloadFont(f.family, state.text)).then(function () {
+    var jobs = [], i;
+    for (i = 0; i < state.items.length; i++) {
+      var it = state.items[i];
+      jobs.push(preloadFont(fontFor(it).family, it.text, it.size));
+    }
+
+    Promise.resolve(Promise.all(jobs)).then(function () {
       var out = 1080;
       var oc = document.createElement('canvas');
       oc.width = out;
@@ -1324,7 +1799,7 @@
       var octx = oc.getContext('2d');
       var k = out / Math.max(stageW, stageH);
       octx.setTransform(k, 0, 0, k, 0, 0);
-      renderScene(octx, stageW, stageH, false);
+      renderScene(octx, stageW, stageH, false, false);
 
       var name = 'lettering-' + stamp() + '.png';
 
@@ -1575,7 +2050,10 @@
       });
       return chain;
     }).then(function () {
+      ensureItemFonts();
       renderFontGrids();
+      syncInputs();
+      syncLabels();
       draw();
     });
   }
@@ -1634,20 +2112,21 @@
     if (idx < 0) return;
     disarmDelete();
     var item = customFonts[idx];
-    var wasSelected = state.fontId === id;
+    var wasSelected = selFontId() === id;
     customFonts.splice(idx, 1);
     if (editingId === id) editingId = null;
     if (item.face && document.fonts && typeof document.fonts['delete'] === 'function') {
       try { document.fonts['delete'](item.face); } catch (e) {}
     }
-    if (wasSelected) {
-      var next = fontById(DEFAULT.fontId) || firstAvailableFont();
-      state.fontId = next ? next.id : FALLBACK_FONT.id;
-      if (next && !next.custom) ensureFamily(next.family);
+    for (var i = 0; i < state.items.length; i++) {
+      if (state.items[i].fontId === id) state.items[i].fontId = '';
     }
+    ensureItemFonts();
     renderFontGrids();
+    syncInputs();
+    syncLabels();
     draw();
-    if (wasSelected) preloadFont(currentFont().family, state.text);
+    preloadAll();
     idbDeleteFont(id).then(function () {
       toast('폰트를 지웠어요.');
     }, function () {
@@ -1711,7 +2190,7 @@
 
     var pick = document.createElement('button');
     pick.type = 'button';
-    pick.className = 'mine-pick' + (state.fontId === item.id ? ' on' : '');
+    pick.className = 'mine-pick' + (selFontId() === item.id ? ' on' : '');
     pick.dataset.id = item.id;
     pick.style.setProperty('--f', cssFamily(item.family));
     pick.setAttribute('aria-label', item.name + ' 글씨체 적용');
@@ -1766,11 +2245,6 @@
 
   /* ================= 이벤트 ================= */
   function bindEvents() {
-    textArea.addEventListener('input', function () {
-      state.text = textArea.value;
-      draw();
-    });
-
     /* 캔버스에서 글자를 끌어 위치를 옮긴다 (마우스·펜·손가락 공통) */
     canvas.addEventListener('pointerdown', startDrag);
     canvas.addEventListener('pointermove', moveDrag);
@@ -1780,46 +2254,66 @@
     canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
     $('posReset').addEventListener('click', recenter);
 
+    $('addMsg').addEventListener('click', addItem);
+
     $('examples').addEventListener('click', function (e) {
       var b = e.target.closest('.ex');
       if (!b) return;
-      state.text = b.textContent;
-      textArea.value = state.text;
+      var it = selItem();
+      if (!it) return;
+      it.text = b.textContent;
+      var ta = textAreaFor(it.id);
+      if (ta) ta.value = it.text;
+      syncMsgSel();
       draw();
     });
 
+    /* 크기·자간·곡률·줄간격·정렬은 지금 선택된 문구에만 적용된다 */
     $('size').addEventListener('input', function () {
-      state.size = parseFloat(this.value);
+      var it = selItem();
+      var v = parseFloat(this.value);
+      if (it) it.size = v;
+      writeLastSize(v);          /* 마지막으로 정한 글자 크기 — 다음에 열 때의 기본값 */
       syncLabels();
+      syncMsgSel();
       draw();
     });
     $('spacing').addEventListener('input', function () {
-      state.spacing = parseFloat(this.value);
+      var it = selItem();
+      if (it) it.spacing = parseFloat(this.value);
       syncLabels();
+      syncMsgSel();
       draw();
     });
     $('curve').addEventListener('input', function () {
-      state.curve = parseFloat(this.value);
+      var it = selItem();
+      if (it) it.curve = parseFloat(this.value);
       syncLabels();
+      syncMsgSel();
       draw();
     });
     $('lineHeight').addEventListener('input', function () {
-      state.lineHeight = parseFloat(this.value);
+      var it = selItem();
+      if (it) it.lineHeight = parseFloat(this.value);
       syncLabels();
       draw();
     });
     $('curveReset').addEventListener('click', function () {
-      state.curve = 0;
+      var it = selItem();
+      if (it) it.curve = 0;
       $('curve').value = 0;
       syncLabels();
+      syncMsgSel();
       draw();
     });
 
     $('align').addEventListener('click', function (e) {
       var b = e.target.closest('button');
       if (!b) return;
-      state.align = b.dataset.v;
+      var it = selItem();
+      if (it) it.align = b.dataset.v;
       syncInputs();
+      syncMsgSel();
       draw();
     });
 
@@ -1845,20 +2339,19 @@
       editMode = false;
       disarmChips();
       endDrag(null);
-      state.text = DEFAULT.text;
+
       var start = fontById(DEFAULT.fontId) || firstAvailableFont();
-      state.fontId = start ? start.id : FALLBACK_FONT.id;
+      var it = makeItem({ text: DEFAULT.text, size: DEFAULT.size, fontId: start ? start.id : '' });
       if (start && !start.custom) ensureFamily(start.family);
-      state.size = DEFAULT.size;
-      state.spacing = DEFAULT.spacing;
-      state.curve = DEFAULT.curve;
-      state.lineHeight = DEFAULT.lineHeight;
-      state.align = DEFAULT.align;
+      writeLastSize(DEFAULT.size);
+
+      state.items = [it];
+      state.selId = it.id;
       state.color = DEFAULT.color;
       state.bg = DEFAULT.bg;
       state.guide = DEFAULT.guide;
-      state.offsetX = DEFAULT.offsetX;
-      state.offsetY = DEFAULT.offsetY;
+
+      rebuildMessages();
       syncInputs();
       syncLabels();
       syncPosUI();
@@ -1885,9 +2378,15 @@
   /* ================= 시작 ================= */
   function init() {
     hiddenDefaults = loadHiddenDefaults();
-    var start = fontById(state.fontId) || fontById(DEFAULT.fontId) || firstAvailableFont();
-    state.fontId = start ? start.id : FALLBACK_FONT.id;
-    ensureFamily(currentFont().family);
+    lastSize = readLastSize();
+
+    var start = fontById(DEFAULT.fontId) || firstAvailableFont();
+    var first = makeItem({ text: DEFAULT.text, size: lastSize, fontId: start ? start.id : '' });
+    if (start && !start.custom) ensureFamily(start.family);
+    state.items = [first];
+    state.selId = first.id;
+
+    rebuildMessages();
     renderFontGrids();
     renderSwatches();
     syncInputs();
