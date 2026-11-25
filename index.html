@@ -475,6 +475,196 @@
   }
   .lockbtn:active { background: #FBF2E1; }
 
+  /* ── 생리 캘린더 ───────────────────────────── */
+  .pgear {
+    margin-left: auto; font: inherit; font-size: 11.5px; font-weight: 800; color: #8A6B3F;
+    background: #FDF6E9; border: 1px solid #EEDFC4; border-radius: 999px;
+    padding: 5px 11px; cursor: pointer; white-space: nowrap;
+  }
+  .pgear[aria-expanded="true"] { background: #F4E4C8; }
+  .psum {
+    display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
+    padding: 0 2px 12px; border-bottom: 1px dashed #F0E2CE; margin-bottom: 12px;
+  }
+  .psum .pbig {
+    font-size: 30px; font-weight: 800; letter-spacing: -1.1px; color: #B4566B;
+    line-height: 1.05; font-variant-numeric: tabular-nums;
+  }
+  .psum .pbig.small { font-size: 15px; letter-spacing: -.3px; color: #8A6B3F; line-height: 1.4; }
+  .psum .pwhere { font-size: 12px; font-weight: 800; color: #A4937A; padding-bottom: 4px; }
+  .psum .pmeta {
+    margin-left: auto; text-align: right; font-size: 11.5px; font-weight: 600;
+    color: #A4937A; line-height: 1.55; padding-bottom: 2px;
+  }
+  .pquick {
+    font: inherit; font-size: 11.5px; font-weight: 800; color: #A9782F;
+    background: #FBF0DA; border: 1px solid #F2E0BD; border-radius: 999px;
+    padding: 5px 10px; margin-top: 7px; cursor: pointer;
+  }
+
+  .pcal-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .pnav {
+    width: 32px; height: 32px; flex: none; padding: 0 0 3px; cursor: pointer;
+    display: grid; place-items: center;
+    background: #FFFDF8; border: 1px solid #EEDFC4; border-radius: 11px;
+    color: #8A6B3F; font-size: 19px; line-height: 1;
+  }
+  .pnav:active { background: #FBF2E1; }
+  .pmonth {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 14px; font-weight: 800; color: #443322; letter-spacing: -.2px;
+  }
+  .pmonth .pnow {
+    font: inherit; font-size: 10px; font-weight: 800; letter-spacing: 0;
+    color: #A9782F; background: #FBF0DA; border: 1px solid #F2E0BD;
+    border-radius: 999px; padding: 2px 7px;
+  }
+  .pmonth .pnow.go { cursor: pointer; color: #8A6B3F; background: #FFFDF8; border-color: #EEDFC4; }
+  .pweek, .pcal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .pweek { margin-bottom: 4px; }
+  .pweek span { text-align: center; font-size: 10.5px; font-weight: 800; color: #B09C82; padding: 1px 0; }
+  .pweek span:nth-child(6) { color: #93A6BC; }
+  .pweek span:nth-child(7) { color: #C2838F; }
+
+  .pday {
+    position: relative; min-height: 50px; padding: 5px 2px 4px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font: inherit; cursor: pointer; text-align: center;
+    background: #FFFDF8; border: 1px solid transparent; border-radius: 12px;
+    -webkit-appearance: none;
+  }
+  .pday.blank { background: transparent; border: 0; cursor: default; }
+  .pday .pn { font-size: 12px; font-weight: 700; color: #6D5738; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .pday.sun .pn { color: #C2838F; }
+  .pday.sat .pn { color: #93A6BC; }
+  .pday.pper { background: linear-gradient(180deg, #FCEEF1, #F7DDE3); border-color: #EFC7D1; }
+  .pday.pper .pn { color: #A5445A; font-weight: 800; }
+  .pday.pexp { background: #FFF9FB; border: 1px dashed #E2B3C0; }
+  .pday.pexp .pn { color: #B77E8D; }
+  .pday.pfert { background: #F2F7F0; border-color: #D9E7D3; }
+  .pday.pfert .pn { color: #5F7E52; }
+  .pday.povu { background: #E6F0E2; border-color: #C4DABC; }
+  .pday.povu .pn { color: #4F7044; font-weight: 800; }
+  .pday.ptoday { box-shadow: inset 0 0 0 2px rgba(201,139,60,.75); }
+  .pday.ptoday .pn { font-weight: 800; }
+  .pday .pstk {
+    display: flex; gap: 1px; height: 12px; align-items: center; justify-content: center;
+    font-size: 9px; line-height: 1; max-width: 100%; overflow: hidden; white-space: nowrap;
+  }
+  .pday.phmemo::after {
+    content: ""; position: absolute; right: 6px; bottom: 5px;
+    width: 4px; height: 4px; border-radius: 50%; background: #C08497;
+  }
+  .pday:focus-visible { outline: 2px solid #B47A3C; outline-offset: 1px; }
+
+  .plegend {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;
+    font-size: 10.5px; font-weight: 600; color: #9A8468;
+  }
+  .plegend span { display: inline-flex; align-items: center; gap: 5px; }
+  .plegend .lg { width: 11px; height: 11px; border-radius: 4px; display: inline-block; }
+  .plegend .lg.per { background: #F7DDE3; border: 1px solid #EFC7D1; }
+  .plegend .lg.exp { background: #FFF9FB; border: 1px dashed #E2B3C0; }
+  .plegend .lg.fer { background: #E6F0E2; border: 1px solid #C4DABC; }
+  .plegend .lg.ovu { background: #CFE2C8; border: 1px solid #B3CEA8; border-radius: 50%; }
+
+  .pmemos { margin-top: 12px; padding-top: 10px; border-top: 1px dashed #F0E2CE; }
+  .pmemos[hidden] { display: none; }
+  .pm-title { font-size: 11px; font-weight: 800; letter-spacing: .04em; color: #A9782F; margin-bottom: 4px; }
+  .pmrow {
+    display: flex; align-items: center; gap: 9px; width: 100%; text-align: left;
+    padding: 7px 4px; font: inherit; cursor: pointer;
+    background: transparent; border: 0; border-radius: 10px;
+  }
+  .pmrow + .pmrow { border-top: 1px dashed #F4EADB; }
+  .pmrow:hover { background: #FDF8EF; }
+  .pmrow .pmd { font-size: 11.5px; font-weight: 800; color: #9A7539; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .pmrow .pms { font-size: 12px; line-height: 1; }
+  .pmrow .pmt {
+    font-size: 12.5px; font-weight: 600; color: #5A4832; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .pfoot { margin-top: 12px; font-size: 10.5px; color: #B3A48E; line-height: 1.55; letter-spacing: -.1px; }
+
+  .psettings { display: grid; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed #F0E2CE; }
+  .psettings[hidden] { display: none; }
+  .pset-title { font-size: 11.5px; font-weight: 800; letter-spacing: .03em; color: #A9782F; margin-bottom: 8px; }
+  .pswitchrow { display: flex; align-items: center; gap: 10px; font-size: 12.5px; font-weight: 700; color: #5A4832; }
+  .pswitchrow .sw { margin-left: auto; }
+  .pnumrow { display: flex; gap: 10px; margin-top: 10px; }
+  .pnumrow label {
+    flex: 1; display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #7A6446;
+    background: #FDF8EF; border: 1px solid #F1E5D2; border-radius: 12px; padding: 8px 10px;
+  }
+  .pnumrow input {
+    font: inherit; font-size: 14px; font-weight: 800; color: #443322; text-align: right;
+    width: 52px; padding: 5px 6px; background: #FFFDF8; border: 1px solid #EFE2CC; border-radius: 8px;
+    -webkit-appearance: none;
+  }
+  .pnumrow input:disabled { opacity: .55; background: #FBF6EC; }
+  .pnote { font-size: 11px; color: #A4937A; line-height: 1.55; margin-top: 8px; }
+  #pBulk {
+    width: 100%; font: inherit; font-size: 13px; font-weight: 600; color: #443322;
+    background: #FFFDF8; border: 1px solid #EFE2CC; border-radius: 12px;
+    padding: 10px 12px; line-height: 1.55; resize: vertical; -webkit-appearance: none;
+  }
+  #pBulk:focus, #psMemo:focus { outline: none; border-color: #DDBE8F; box-shadow: 0 0 0 3px rgba(201,139,60,.13); }
+  .pbulkrow { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 8px; }
+  .pact {
+    font: inherit; font-size: 12.5px; font-weight: 800; color: #5A3B12;
+    background: linear-gradient(100deg, #F4D39C, #E9B765);
+    border: 1px solid #E3C087; border-radius: 11px; padding: 9px 15px; cursor: pointer;
+  }
+  .pact:active { transform: translateY(1px); }
+  .pact.ghost { background: #FFFDF8; border-color: #EEDFC4; color: #8A6B3F; }
+  .pact.danger { color: #B4553A; border-color: #F0D6CB; }
+  .pmsg { font-size: 11.5px; font-weight: 700; color: #7B9470; line-height: 1.5; }
+  .pmsg.err { color: #B4553A; }
+
+  /* 날짜 편집 시트 */
+  .psheet { position: fixed; inset: 0; z-index: 70; display: flex; align-items: flex-end; justify-content: center; padding: 16px; }
+  .psheet[hidden] { display: none; }
+  .ps-back { position: absolute; inset: 0; background: rgba(42,30,18,.5); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+  .ps-box {
+    position: relative; z-index: 1; width: 100%; max-width: 420px;
+    background: #FFFDF9; border-radius: 24px;
+    padding: 18px 18px calc(16px + env(safe-area-inset-bottom));
+    box-shadow: 0 20px 54px rgba(60,40,20,.34); max-height: 88vh; overflow-y: auto;
+  }
+  .ps-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+  .ps-title { font-size: 16px; font-weight: 800; letter-spacing: -.3px; color: #3F3021; }
+  .ps-sub { font-size: 11.5px; font-weight: 700; color: #A4937A; margin-top: 3px; }
+  .ps-x {
+    margin-left: auto; width: 32px; height: 32px; flex: none; padding: 0 0 2px;
+    font-size: 18px; line-height: 1; color: #8A6B3F;
+    background: #FFFDF8; border: 1px solid #EEDFC4; border-radius: 50%; cursor: pointer;
+  }
+  .ps-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ptog {
+    font: inherit; font-size: 12.5px; font-weight: 800; color: #8A6B3F;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 11px 8px; background: #FDF8EF; border: 1px solid #F1E5D2; border-radius: 12px; cursor: pointer;
+  }
+  .ptog .pd { width: 8px; height: 8px; border-radius: 50%; background: #DCCDB6; }
+  .ptog.on { color: #A5445A; background: #FCEEF1; border-color: #EFC7D1; }
+  .ptog.on .pd { background: #C9666F; }
+  .ps-label { font-size: 11px; font-weight: 800; letter-spacing: .04em; color: #A9782F; margin: 14px 0 7px; }
+  .psticks { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pstk-chip {
+    font: inherit; font-size: 12px; font-weight: 700; color: #6D5738;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 7px 11px; background: #FFFDF8; border: 1px solid #EFE2CC; border-radius: 999px; cursor: pointer;
+  }
+  .pstk-chip.on { background: #FBF0DA; border-color: #E4C48C; color: #8E5F1C; }
+  #psMemo {
+    width: 100%; min-height: 56px; font: inherit; font-size: 13px; font-weight: 600; color: #443322;
+    background: #FFFDF8; border: 1px solid #EFE2CC; border-radius: 12px;
+    padding: 10px 12px; line-height: 1.55; resize: vertical; -webkit-appearance: none;
+  }
+  .ps-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .ps-actions .pact { flex: 1; padding: 12px 0; }
+  .ps-actions .pact.danger { flex: 0 0 auto; padding: 12px 14px; background: #FFFDF8; }
+
   /* ── 잠금 화면 ───────────────────────────── */
   .lock {
     position: fixed; inset: 0; z-index: 40;
@@ -616,6 +806,16 @@
     .lock-title { font-size: 21px; }
     .pwfield input { height: 54px; font-size: 16px; }
     .lock-inner { max-width: 320px; }
+    .psum .pbig { font-size: 25px; }
+    .psum .pmeta { margin-left: 0; width: 100%; text-align: left; padding-bottom: 0; }
+    .pcal-grid, .pweek { gap: 3px; }
+    .pday, .pday.blank { min-height: 44px; border-radius: 10px; padding: 4px 1px 3px; }
+    .pday .pn { font-size: 11.5px; }
+    .pday .pstk { font-size: 8px; height: 10px; }
+    .plegend { gap: 8px; font-size: 10px; }
+    .psheet { padding: 0; }
+    .ps-box { max-width: none; border-radius: 22px 22px 0 0; }
+    .pnumrow { gap: 8px; }
   }
 </style>
 </head>
@@ -746,6 +946,8 @@ function loadPatch(data) {
 /* 앱을 다시 열었을 때 10분 넘게 지났으면 패치를 새로 읽어 화면을 맞춘다. */
 function refreshPatch() {
   if (!BASE || !DATA || $("page").hidden) return;
+  var sh = $("pSheet");
+  if (sh && !sh.hidden) return; /* 날짜를 적는 중이면 새로 그리지 않는다 */
   if (Date.now() - patchAt < 600000) return;
   var ae = document.activeElement; /* 적던 글이 있으면 건드리지 않는다 */
   if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName) && ae.value) return;
@@ -1134,6 +1336,699 @@ function photoHTML(d) {
   '</div>';
 }
 
+/* ══════════════════════════════════════════════
+   생리 캘린더
+   기록·설정은 오직 이 기기 localStorage(todayboard_period_v1)에만 둔다.
+   공개 저장소(index.html)와 board-patch.json에는 어떤 날짜도 남기지 않는다.
+   ══════════════════════════════════════════════ */
+var PERIOD_KEY = "todayboard_period_v1";
+var PERIOD_STICKERS = [
+  { id: "red",    emoji: "🔴", label: "빨간점" },
+  { id: "orange", emoji: "🟠", label: "주황점" },
+  { id: "blue",   emoji: "🔵", label: "파란점" },
+  { id: "heart",  emoji: "💗", label: "하트" },
+  { id: "pill",   emoji: "💊", label: "약" },
+  { id: "star",   emoji: "⭐", label: "별" },
+  { id: "drop",   emoji: "💧", label: "물방울" },
+  { id: "moon",   emoji: "🌙", label: "달" }
+];
+var PSTATE = null, PVIEW = null, PSEL = null;
+
+function pAdd(k, n) { var d = parseDay(k); d.setDate(d.getDate() + n); return dayKey(d); }
+function pDiff(a, b) { return Math.round((parseDay(b) - parseDay(a)) / 86400000); }
+function pMd(k) { return k ? k.slice(5, 7) + "/" + k.slice(8, 10) : ""; }
+function pWd(k) { return ["일", "월", "화", "수", "목", "금", "토"][parseDay(k).getDay()]; }
+function pRec(k) { return (PSTATE && PSTATE.days && PSTATE.days[k]) || null; }
+function pStickerOf(id) {
+  for (var i = 0; i < PERIOD_STICKERS.length; i++) if (PERIOD_STICKERS[i].id === id) return PERIOD_STICKERS[i];
+  return null;
+}
+function pStickerEmoji(list) {
+  var out = "";
+  (list || []).forEach(function (id) { var s = pStickerOf(id); if (s) out += s.emoji; });
+  return out;
+}
+function pStickerNames(list) {
+  var out = [];
+  (list || []).forEach(function (id) { var s = pStickerOf(id); if (s) out.push(s.label); });
+  return out.join(" · ");
+}
+function pTidy(k) {
+  var r = PSTATE.days[k];
+  if (!r) return;
+  if (!r.p && !(r.st && r.st.length) && !r.memo) delete PSTATE.days[k];
+}
+function pCleanDays(raw) {
+  var out = {};
+  if (!raw || typeof raw !== "object") return out;
+  Object.keys(raw).forEach(function (k) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
+    var v = raw[k];
+    if (!v || typeof v !== "object") return;
+    var rec = {};
+    if (v.s) { rec.s = true; rec.p = true; }
+    else if (v.p) rec.p = true;
+    if (Array.isArray(v.st)) {
+      var st = [];
+      v.st.forEach(function (id) {
+        if (typeof id === "string" && pStickerOf(id) && st.indexOf(id) < 0) st.push(id);
+      });
+      if (st.length) rec.st = st.slice(0, 8);
+    }
+    if (typeof v.memo === "string" && v.memo.trim()) rec.memo = v.memo.slice(0, 200);
+    if (rec.p || rec.st || rec.memo) out[k] = rec;
+  });
+  return out;
+}
+function periodLoad() {
+  var raw = null;
+  try { raw = localStorage.getItem(PERIOD_KEY); } catch (e) {}
+  var s = null;
+  if (raw) { try { s = JSON.parse(raw); } catch (e) { s = null; } }
+  var out = { v: 1, cycle: 28, periodLen: 5, auto: true, days: {} };
+  if (s && typeof s === "object") {
+    if (typeof s.cycle === "number" && s.cycle >= 18 && s.cycle <= 90) out.cycle = Math.round(s.cycle);
+    if (typeof s.periodLen === "number" && s.periodLen >= 1 && s.periodLen <= 15) out.periodLen = Math.round(s.periodLen);
+    if (s.auto === false) out.auto = false;
+    out.days = pCleanDays(s.days);
+  }
+  return out;
+}
+function periodSave() {
+  try { localStorage.setItem(PERIOD_KEY, JSON.stringify(PSTATE)); return true; }
+  catch (e) { return false; }
+}
+
+/* ── 주기 · 기간 통계 ───────────────────────── */
+function pStarts() {
+  var out = [];
+  Object.keys(PSTATE.days).forEach(function (k) {
+    if (PSTATE.days[k] && PSTATE.days[k].s) out.push(k);
+  });
+  out.sort();
+  return out;
+}
+function pRunLen(k) {
+  var n = 0;
+  while (n < 40 && pRec(k) && pRec(k).p) { n++; k = pAdd(k, 1); }
+  return n;
+}
+function pRunStart(k) {
+  var i = 0;
+  while (i < 60 && pRec(k) && pRec(k).p) { k = pAdd(k, -1); i++; }
+  return pAdd(k, 1);
+}
+function pInfo() {
+  var starts = pStarts(), diffs = [], i, s = 0;
+  for (i = 1; i < starts.length; i++) {
+    var dd = pDiff(starts[i - 1], starts[i]);
+    if (dd >= 15 && dd <= 90) diffs.push(dd);
+  }
+  var mean = null;
+  if (diffs.length) { for (i = 0; i < diffs.length; i++) s += diffs[i]; mean = s / diffs.length; }
+  var autoOn = !!(PSTATE.auto && diffs.length);
+  var cycle = autoOn ? Math.round(mean) : PSTATE.cycle;
+  var lens = [];
+  for (i = 0; i < starts.length; i++) { var n = pRunLen(starts[i]); if (n > 0) lens.push(n); }
+  var len = PSTATE.periodLen;
+  if (autoOn && lens.length) {
+    var t = 0;
+    for (i = 0; i < lens.length; i++) t += lens[i];
+    len = Math.max(1, Math.round(t / lens.length));
+  }
+  var last = starts.length ? starts[starts.length - 1] : null;
+  var next = last ? pAdd(last, cycle) : null;
+  return {
+    starts: starts, diffs: diffs, mean: mean, autoOn: autoOn, cycle: cycle,
+    len: len, lens: lens, last: last, next: next, ovu: next ? pAdd(next, -14) : null
+  };
+}
+
+/* ── 요약 ─────────────────────────────────── */
+function pSumHTML(info) {
+  if (!info.starts.length) {
+    return '<div class="psum">' +
+      '<div><div class="pbig small">시작일을 눌러 기록해 보세요</div>' +
+        '<button type="button" class="pquick" id="pQuick">기간 한 번에 넣기</button></div>' +
+      '<div class="pmeta">주기 기본 28일<br>기간 기본 5일</div></div>';
+  }
+  var tk = dayKey(new Date()), tr = pRec(tk), big, where;
+  if (tr && tr.p) {
+    var rs = pRunStart(tk);
+    big = "생리 중";
+    where = (pDiff(rs, tk) + 1) + "일째 · " + pMd(rs) + " 시작";
+  } else {
+    var dn = pDiff(tk, info.next);
+    if (dn > 0) { big = "D-" + dn; where = "다음 생리까지"; }
+    else if (dn === 0) { big = "D-DAY"; where = "오늘 예정일이에요"; }
+    else { big = "D+" + (-dn); where = "예정일이 " + (-dn) + "일 지났어요"; }
+  }
+  var meta = "다음 예정 " + pMd(info.next) + " (" + pWd(info.next) + ")" +
+    "<br>평균 주기 " + info.cycle + "일 · 평균 " + info.len + "일" + (info.autoOn ? " · 자동" : "");
+  return '<div class="psum"><div class="pbig">' + big + '</div>' +
+    '<div class="pwhere">' + where + '</div>' +
+    '<div class="pmeta">' + meta + '</div></div>';
+}
+
+/* ── 달력 ─────────────────────────────────── */
+function pGridHTML(info) {
+  var y = PVIEW.y, m = PVIEW.m;
+  var tk = dayKey(new Date());
+  var pad = (new Date(y, m, 1).getDay() + 6) % 7;
+  var total = new Date(y, m + 1, 0).getDate();
+  var exStart = info.next, exEnd = info.next ? pAdd(info.next, info.len - 1) : null;
+  var fertA = info.ovu ? pAdd(info.ovu, -5) : null;
+  var fertB = info.ovu ? pAdd(info.ovu, 1) : null;
+  var out = [], d;
+  for (d = 0; d < pad; d++) out.push('<span class="pday blank" aria-hidden="true"></span>');
+  for (d = 1; d <= total; d++) {
+    var k = y + "-" + pad2(m + 1) + "-" + pad2(d);
+    var rec = pRec(k);
+    var cls = ["pday"], tags = [];
+    var dow = new Date(y, m, d).getDay();
+    if (dow === 0) cls.push("sun");
+    if (dow === 6) cls.push("sat");
+    var isP = !!(rec && rec.p);
+    if (isP) { cls.push("pper"); tags.push("생리"); }
+    else if (exStart && k >= exStart && k <= exEnd) { cls.push("pexp"); tags.push("생리 예정"); }
+    if (!isP && info.ovu) {
+      if (k === info.ovu) { cls.push("povu"); tags.push("배란 예상"); }
+      else if (k >= fertA && k <= fertB) { cls.push("pfert"); tags.push("가임기"); }
+    }
+    if (k === tk) { cls.push("ptoday"); tags.push("오늘"); }
+    var st = (rec && rec.st) || [];
+    if (st.length) cls.push("pstkday");
+    if (rec && rec.memo) { cls.push("phmemo"); tags.push("메모"); }
+    var aria = (m + 1) + "월 " + d + "일 (" + pWd(k) + ")";
+    if (tags.length) aria += " · " + tags.join(" · ");
+    if (st.length) aria += " · " + pStickerNames(st);
+    out.push('<button type="button" class="' + cls.join(" ") + '" data-day="' + k + '" aria-label="' + esc(aria) + '">' +
+      '<span class="pn">' + d + '</span>' +
+      (st.length ? '<span class="pstk" aria-hidden="true">' + pStickerEmoji(st.slice(0, 3)) + '</span>' : '') +
+      '</button>');
+  }
+  return out.join("");
+}
+
+function pMemoRows() {
+  var y = PVIEW.y, m = PVIEW.m, out = [];
+  Object.keys(PSTATE.days).sort().forEach(function (k) {
+    var r = PSTATE.days[k];
+    if (!r) return;
+    var dt = parseDay(k);
+    if (dt.getFullYear() !== y || dt.getMonth() !== m) return;
+    if (!(r.st && r.st.length) && !r.memo) return;
+    var memo = (r.memo || "").replace(/\s+/g, " ").trim();
+    out.push('<button type="button" class="pmrow" data-day="' + k + '">' +
+      '<span class="pmd">' + pMd(k) + '</span>' +
+      '<span class="pms" aria-hidden="true">' + (pStickerEmoji(r.st) || "✎") + '</span>' +
+      '<span class="pmt">' + esc(memo || pStickerNames(r.st)) + '</span>' +
+      '</button>');
+  });
+  return out.join("");
+}
+
+/* ── 화면 그리기 ───────────────────────────── */
+function pSettingsHTML() {
+  return '<div class="pset-block">' +
+      '<div class="pset-title">평균 주기 · 기간</div>' +
+      '<div class="pswitchrow"><span>시작일이 2개 이상이면 자동 계산</span>' +
+        '<button class="sw" type="button" id="pAuto" role="switch" aria-checked="false" aria-label="평균 주기 자동 계산"></button></div>' +
+      '<div class="pnumrow">' +
+        '<label>주기 <input type="number" id="pCycle" min="18" max="90" step="1" inputmode="numeric" aria-label="평균 주기 일수"><span>일</span></label>' +
+        '<label>기간 <input type="number" id="pLen" min="1" max="15" step="1" inputmode="numeric" aria-label="평균 생리 기간 일수"><span>일</span></label>' +
+      '</div>' +
+      '<div class="pnote" id="pCalcNote"></div>' +
+    '</div>' +
+    '<div class="pset-block">' +
+      '<div class="pset-title">기간 일괄 추가</div>' +
+      '<textarea id="pBulk" rows="2" placeholder="예) 3/2-6, 4/1-5  또는  2026-03-02~2026-03-06" aria-label="지난 생리 기간 붙여넣기"></textarea>' +
+      '<div class="pbulkrow"><button class="pact" type="button" id="pBulkApply">적용</button>' +
+        '<span class="pmsg" id="pBulkMsg" role="status" aria-live="polite"></span></div>' +
+      '<div class="pnote">붙여넣고 적용을 누르면 시작일과 기간이 한 번에 기록되고, 평균 주기와 기간이 다시 계산돼요.</div>' +
+    '</div>' +
+    '<div class="pset-block">' +
+      '<div class="pset-title">백업</div>' +
+      '<div class="pbulkrow">' +
+        '<button class="pact ghost" type="button" id="pExport">내보내기</button>' +
+        '<button class="pact ghost" type="button" id="pImportBtn">불러오기</button>' +
+        '<input type="file" id="pImport" accept="application/json,.json" hidden>' +
+      '</div>' +
+      '<div class="pmsg" id="pImpMsg" role="status" aria-live="polite"></div>' +
+      '<div class="pnote">기기를 바꿀 때 내보낸 파일을 불러오면 그대로 돌아와요.</div>' +
+    '</div>';
+}
+
+function pSheetHTML() {
+  var chips = PERIOD_STICKERS.map(function (s) {
+    return '<button type="button" class="pstk-chip" data-st="' + s.id + '" aria-pressed="false">' +
+      '<span aria-hidden="true">' + s.emoji + '</span>' + s.label + '</button>';
+  }).join("");
+  return '<div class="psheet" id="pSheet" hidden>' +
+    '<div class="ps-back" data-ps-close="1"></div>' +
+    '<div class="ps-box" role="dialog" aria-modal="true" aria-labelledby="psTitle">' +
+      '<div class="ps-head"><div><div class="ps-title" id="psTitle"></div>' +
+        '<div class="ps-sub" id="psSub"></div></div>' +
+        '<button class="ps-x" type="button" id="psClose" aria-label="닫기">&times;</button></div>' +
+      '<div class="ps-toggles">' +
+        '<button class="ptog" type="button" id="psStart" aria-pressed="false"><span class="pd"></span>생리 시작</button>' +
+        '<button class="ptog" type="button" id="psMid" aria-pressed="false"><span class="pd"></span>생리 중</button>' +
+      '</div>' +
+      '<div class="ps-label">스티커</div>' +
+      '<div class="psticks" id="psSticks">' + chips + '</div>' +
+      '<div class="ps-label">메모</div>' +
+      '<textarea id="psMemo" rows="2" maxlength="200" placeholder="예) 부정출혈, 생리통"></textarea>' +
+      '<div class="ps-actions">' +
+        '<button class="pact ghost danger" type="button" id="psDel">기록 삭제</button>' +
+        '<button class="pact" type="button" id="psDone">완료</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function periodHTML() {
+  return '<div class="card wide period" id="periodCard">' +
+    '<div class="card-head mid">' +
+      '<span class="hicon emoji">🌸</span>' +
+      '<h3>생리 캘린더</h3>' +
+      '<button class="pgear" type="button" id="pGear" aria-expanded="false" aria-controls="pSettings">⚙ 설정</button>' +
+    '</div>' +
+    '<div id="pSum"></div>' +
+    '<div class="pcal">' +
+      '<div class="pcal-top">' +
+        '<button class="pnav" type="button" id="pPrev" aria-label="이전 달">‹</button>' +
+        '<div class="pmonth" id="pMonth"></div>' +
+        '<button class="pnav" type="button" id="pNext" aria-label="다음 달">›</button>' +
+      '</div>' +
+      '<div class="pweek" aria-hidden="true"><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span></div>' +
+      '<div class="pcal-grid" id="pGrid" role="group" aria-label="생리 달력"></div>' +
+      '<div class="plegend">' +
+        '<span><i class="lg per"></i>생리</span>' +
+        '<span><i class="lg exp"></i>예정</span>' +
+        '<span><i class="lg fer"></i>가임기</span>' +
+        '<span><i class="lg ovu"></i>배란 예상</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="pmemos" id="pMemos" hidden></div>' +
+    '<div class="pfoot">날짜를 누르면 생리·스티커·메모를 적을 수 있어요. 적은 내용은 이 기기에만 저장돼요.</div>' +
+    '<div class="psettings" id="pSettings" hidden>' + pSettingsHTML() + '</div>' +
+    pSheetHTML() +
+  '</div>';
+}
+
+function pRenderSettings(info) {
+  var auto = $("pAuto");
+  if (!auto) return;
+  auto.classList.toggle("on", !!PSTATE.auto);
+  auto.setAttribute("aria-checked", PSTATE.auto ? "true" : "false");
+  var cy = $("pCycle"), ln = $("pLen");
+  cy.value = info.autoOn ? info.cycle : PSTATE.cycle;
+  ln.value = info.autoOn ? info.len : PSTATE.periodLen;
+  cy.disabled = info.autoOn;
+  ln.disabled = info.autoOn;
+  var note = $("pCalcNote");
+  if (PSTATE.auto && info.diffs.length) {
+    note.textContent = "자동 계산 중 · 시작일 " + info.starts.length + "개, 주기 " +
+      (Math.round(info.mean * 10) / 10) + "일 평균" +
+      (info.lens.length ? " · 기간 " + info.len + "일" : "");
+  } else if (PSTATE.auto) {
+    note.textContent = "시작일이 2개 이상 쌓이면 평균 주기를 자동으로 계산해요. 지금은 기본 " +
+      PSTATE.cycle + "일로 보고 있어요.";
+  } else {
+    note.textContent = "직접 정한 주기·기간으로 계산해요.";
+  }
+}
+
+function pRenderCal() {
+  var grid = $("pGrid");
+  if (!grid) return;
+  var info = pInfo();
+  var sum = $("pSum");
+  if (sum) sum.innerHTML = pSumHTML(info);
+  var mon = $("pMonth");
+  if (mon) {
+    var now = new Date();
+    var isCur = (PVIEW.y === now.getFullYear() && PVIEW.m === now.getMonth());
+    mon.innerHTML = '<span>' + PVIEW.y + '년 ' + (PVIEW.m + 1) + '월</span>' +
+      (isCur ? '<span class="pnow">이번 달</span>' : '<button type="button" class="pnow go" id="pGoToday">오늘</button>');
+  }
+  grid.innerHTML = pGridHTML(info);
+  var box = $("pMemos"), rows = pMemoRows();
+  if (box) {
+    box.innerHTML = rows ? '<div class="pm-title">' + (PVIEW.m + 1) + '월 스티커 · 메모</div>' + rows : '';
+    box.hidden = !rows;
+  }
+  pRenderSettings(info);
+}
+
+/* ── 날짜 편집 시트 ─────────────────────────── */
+function pRenderSheet() {
+  if (!PSEL) return;
+  var k = PSEL, rec = pRec(k) || {};
+  var bits = [];
+  if (rec.s) bits.push("생리 시작일");
+  else if (rec.p) bits.push("생리 " + (pDiff(pRunStart(k), k) + 1) + "일째");
+  if (rec.st && rec.st.length) bits.push(pStickerNames(rec.st));
+  if (rec.memo) bits.push("메모 있음");
+  $("psTitle").textContent = (parseDay(k).getMonth() + 1) + "월 " + parseDay(k).getDate() + "일 (" + pWd(k) + ")";
+  $("psSub").textContent = bits.length ? bits.join(" · ") : "기록 없음";
+  var st = !!rec.s, mid = !!rec.p;
+  $("psStart").classList.toggle("on", st);
+  $("psStart").setAttribute("aria-pressed", st ? "true" : "false");
+  $("psMid").classList.toggle("on", mid);
+  $("psMid").setAttribute("aria-pressed", mid ? "true" : "false");
+  Array.prototype.forEach.call($("psSticks").querySelectorAll("[data-st]"), function (c) {
+    var on = !!(rec.st && rec.st.indexOf(c.getAttribute("data-st")) >= 0);
+    c.classList.toggle("on", on);
+    c.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  $("psMemo").value = rec.memo || "";
+}
+
+function pOpen(k) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(k)) return;
+  var sheet = $("pSheet");
+  if (!sheet) return;
+  PSEL = k;
+  pRenderSheet();
+  sheet.hidden = false;
+  document.body.style.overflow = "hidden";
+  try { $("psClose").focus({ preventScroll: true }); } catch (e) {}
+}
+function pClose() {
+  var sheet = $("pSheet");
+  if (!sheet || sheet.hidden) return;
+  sheet.hidden = true;
+  document.body.style.overflow = "";
+  PSEL = null;
+}
+function pOpenSettings(focusBulk) {
+  var p = $("pSettings"), gear = $("pGear");
+  if (!p || !gear) return;
+  p.hidden = false;
+  gear.setAttribute("aria-expanded", "true");
+  if (focusBulk) {
+    var b = $("pBulk");
+    if (b) { try { b.focus(); } catch (e) {} }
+  }
+}
+
+/* ── 기간 일괄 입력 파서 ─────────────────────── */
+function pParseBulk(text, today) {
+  var res = { ranges: [], bad: [] };
+  var ty = today.getFullYear();
+  function mk(y, mo, da) {
+    if (!(y >= 2000 && y <= 2100)) return null;
+    if (!(mo >= 1 && mo <= 12)) return null;
+    if (!(da >= 1 && da <= 31)) return null;
+    var dt = new Date(y, mo - 1, da);
+    if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== da) return null;
+    return dayKey(dt);
+  }
+  function yearFor(mo, da) {
+    var k = mk(ty, mo, da);
+    if (!k) return null;
+    if (parseDay(k) > today) { var k2 = mk(ty - 1, mo, da); if (k2) return k2; }
+    return k;
+  }
+  function endIn(fromKey, mo, da) {
+    var dt = parseDay(fromKey), y = dt.getFullYear();
+    var b = new Date(y, mo - 1, da);
+    if (b.getDate() !== da) return null;
+    if (b < dt) { b = new Date(y + 1, mo - 1, da); if (b.getDate() !== da) return null; }
+    return dayKey(b);
+  }
+  String(text || "").split(/[,;\n\r]+/).forEach(function (raw) {
+    var s = String(raw).replace(/\s+/g, " ").trim();
+    if (!s) return;
+    s = s.replace(/\s*([~\-])\s*/g, "$1");
+    var m, a = null, b = null;
+    if ((m = s.match(/^(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})[~\-](\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})$/))) {
+      a = mk(+m[1], +m[2], +m[3]); b = mk(+m[4], +m[5], +m[6]);
+    } else if ((m = s.match(/^(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})$/))) {
+      a = mk(+m[1], +m[2], +m[3]); b = a;
+    } else if ((m = s.match(/^(\d{1,2})[.\-\/](\d{1,2})[~\-](\d{1,2})[.\-\/](\d{1,2})$/))) {
+      a = yearFor(+m[1], +m[2]);
+      if (a) b = endIn(a, +m[3], +m[4]);
+    } else if ((m = s.match(/^(\d{1,2})[.\-\/](\d{1,2})[~\-](\d{1,2})$/))) {
+      a = yearFor(+m[1], +m[2]);
+      if (a) b = endIn(a, parseDay(a).getMonth() + 1, +m[3]);
+      if (a && b && b < a) {
+        var b2 = endIn(a, parseDay(a).getMonth() + 2, +m[3]);
+        if (b2) b = b2;
+      }
+    } else if ((m = s.match(/^(\d{1,2})[.\-\/](\d{1,2})$/))) {
+      a = yearFor(+m[1], +m[2]); b = a;
+    } else {
+      res.bad.push(String(raw).trim()); return;
+    }
+    if (!a || !b || b < a) { res.bad.push(String(raw).trim()); return; }
+    var len = pDiff(a, b) + 1;
+    if (len < 1 || len > 15) { res.bad.push(String(raw).trim()); return; }
+    res.ranges.push({ start: a, end: b, len: len });
+  });
+  return res;
+}
+
+function pApplyRanges(ranges) {
+  var days = 0;
+  ranges.forEach(function (r) {
+    var k = r.start;
+    for (var i = 0; i < r.len; i++) {
+      var rec = PSTATE.days[k] || (PSTATE.days[k] = {});
+      rec.p = true;
+      if (i === 0) rec.s = true;
+      days++;
+      k = pAdd(k, 1);
+    }
+  });
+  return { days: days };
+}
+
+/* ── 내보내기 / 불러오기 ─────────────────────── */
+function pExport() {
+  var msg = $("pImpMsg");
+  var payload = {
+    app: "todayboard-period", v: 1, exported: new Date().toISOString(),
+    cycle: PSTATE.cycle, periodLen: PSTATE.periodLen, auto: PSTATE.auto, days: PSTATE.days
+  };
+  var text = JSON.stringify(payload, null, 2);
+  var fname = "period-backup-" + dayKey(new Date()).replace(/-/g, "") + ".json";
+  try {
+    var file = new File([text], fname, { type: "application/json" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: "생리 캘린더 백업" }).then(function () {
+        msg.className = "pmsg"; msg.textContent = "백업 파일을 내보냈어요.";
+      }).catch(function () {});
+      return;
+    }
+  } catch (e) {}
+  try {
+    var blob = new Blob([text], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = fname;
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); if (a.parentNode) a.parentNode.removeChild(a); }, 1500);
+    msg.className = "pmsg"; msg.textContent = "백업 파일을 내려받았어요.";
+  } catch (e2) {
+    msg.className = "pmsg err"; msg.textContent = "내보내지 못했어요. 브라우저에서 다시 시도해 주세요.";
+  }
+}
+
+function pImportText(text) {
+  var msg = $("pImpMsg");
+  var o;
+  try { o = JSON.parse(String(text)); } catch (e) { o = null; }
+  var days = pCleanDays(o && o.days);
+  if (!days || !Object.keys(days).length) {
+    msg.className = "pmsg err";
+    msg.textContent = "기록을 읽지 못했어요. 내보낸 JSON 파일인지 확인해 주세요.";
+    return false;
+  }
+  var n = Object.keys(days).length;
+  if (!window.confirm("불러온 기록 " + n + "일로 바꿀까요? 지금 이 기기에 있는 기록은 지워져요.")) return false;
+  PSTATE.days = days;
+  if (typeof o.cycle === "number" && o.cycle >= 18 && o.cycle <= 90) PSTATE.cycle = Math.round(o.cycle);
+  if (typeof o.periodLen === "number" && o.periodLen >= 1 && o.periodLen <= 15) PSTATE.periodLen = Math.round(o.periodLen);
+  if (o.auto === false) PSTATE.auto = false;
+  periodSave();
+  pRenderCal();
+  msg.className = "pmsg";
+  msg.textContent = n + "일 기록을 불러왔어요.";
+  return true;
+}
+
+/* ── 연결 ─────────────────────────────────── */
+function pBind() {
+  var auto = $("pAuto");
+  if (auto) auto.addEventListener("click", function () {
+    PSTATE.auto = !PSTATE.auto;
+    periodSave(); pRenderCal();
+  });
+  var cy = $("pCycle");
+  if (cy) cy.addEventListener("change", function () {
+    var v = parseInt(this.value, 10);
+    if (!(v >= 18 && v <= 90)) v = PSTATE.cycle;
+    PSTATE.cycle = v; PSTATE.auto = false;
+    periodSave(); pRenderCal();
+  });
+  var ln = $("pLen");
+  if (ln) ln.addEventListener("change", function () {
+    var v = parseInt(this.value, 10);
+    if (!(v >= 1 && v <= 15)) v = PSTATE.periodLen;
+    PSTATE.periodLen = v; PSTATE.auto = false;
+    periodSave(); pRenderCal();
+  });
+  var ba = $("pBulkApply");
+  if (ba) ba.addEventListener("click", function () {
+    var box = $("pBulk"), msg = $("pBulkMsg");
+    var r = pParseBulk(box.value, new Date());
+    if (!r.ranges.length) {
+      msg.className = "pmsg err";
+      msg.textContent = r.bad.length ? "형식을 알아보지 못했어요. 예) 3/2-6, 4/1-5" : "기간을 적어 주세요.";
+      return;
+    }
+    var res = pApplyRanges(r.ranges);
+    periodSave();
+    box.value = r.bad.length ? r.bad.join(", ") : "";
+    pRenderCal();
+    var info = pInfo();
+    msg.className = r.bad.length ? "pmsg err" : "pmsg";
+    msg.textContent = r.ranges.length + "개 기간(" + res.days + "일) 기록했어요." +
+      (info.autoOn ? " 평균 주기 " + info.cycle + "일로 다시 계산했어요." : "") +
+      (r.bad.length ? " 못 읽은 항목: " + r.bad.join(", ") : "");
+  });
+  var ex = $("pExport");
+  if (ex) ex.addEventListener("click", pExport);
+  var ib = $("pImportBtn"), inf = $("pImport");
+  if (ib && inf) {
+    ib.addEventListener("click", function () { try { inf.click(); } catch (e) {} });
+    inf.addEventListener("change", function () {
+      var f = this.files && this.files[0];
+      if (!f) return;
+      var fr = new FileReader();
+      fr.onload = function () { pImportText(fr.result); };
+      fr.onerror = function () {
+        var msg = $("pImpMsg");
+        msg.className = "pmsg err";
+        msg.textContent = "파일을 읽지 못했어요.";
+      };
+      fr.readAsText(f);
+      this.value = "";
+    });
+  }
+
+  var sheet = $("pSheet");
+  if (sheet) {
+    sheet.addEventListener("click", function (e) {
+      if (e.target === sheet || (e.target.getAttribute && e.target.getAttribute("data-ps-close"))) pClose();
+    });
+    sheet.addEventListener("keydown", function (e) { if (e.key === "Escape") pClose(); });
+  }
+  var x = $("psClose");
+  if (x) x.addEventListener("click", pClose);
+  var done = $("psDone");
+  if (done) done.addEventListener("click", pClose);
+
+  var ps = $("psStart");
+  if (ps) ps.addEventListener("click", function () {
+    if (!PSEL) return;
+    var r = PSTATE.days[PSEL] || (PSTATE.days[PSEL] = {});
+    if (r.s) { r.s = false; }
+    else { r.s = true; r.p = true; }
+    pTidy(PSEL); periodSave(); pRenderSheet(); pRenderCal();
+  });
+  var pm = $("psMid");
+  if (pm) pm.addEventListener("click", function () {
+    if (!PSEL) return;
+    var r = PSTATE.days[PSEL] || (PSTATE.days[PSEL] = {});
+    if (r.p) { r.p = false; r.s = false; }
+    else { r.p = true; }
+    pTidy(PSEL); periodSave(); pRenderSheet(); pRenderCal();
+  });
+  var sticks = $("psSticks");
+  if (sticks) sticks.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest("[data-st]") : null;
+    if (!b || !PSEL) return;
+    var id = b.getAttribute("data-st");
+    var r = PSTATE.days[PSEL] || (PSTATE.days[PSEL] = {});
+    var arr = r.st || (r.st = []);
+    var at = arr.indexOf(id);
+    if (at >= 0) arr.splice(at, 1);
+    else arr.push(id);
+    if (!arr.length) delete r.st;
+    pTidy(PSEL); periodSave(); pRenderSheet(); pRenderCal();
+  });
+  var memo = $("psMemo");
+  if (memo) memo.addEventListener("input", function () {
+    if (!PSEL) return;
+    var v = this.value.slice(0, 200);
+    var r = PSTATE.days[PSEL];
+    if (v.trim()) {
+      if (!r) r = PSTATE.days[PSEL] = {};
+      r.memo = v;
+    } else if (r) {
+      delete r.memo;
+      pTidy(PSEL);
+    }
+    periodSave(); pRenderCal();
+  });
+  var del = $("psDel");
+  if (del) del.addEventListener("click", function () {
+    if (!PSEL || !pRec(PSEL)) { pClose(); return; }
+    if (!window.confirm("이 날짜의 기록을 지울까요?")) return;
+    delete PSTATE.days[PSEL];
+    periodSave(); pRenderSheet(); pRenderCal();
+  });
+}
+
+function periodInit() {
+  PSTATE = periodLoad();
+  var now = new Date();
+  PVIEW = { y: now.getFullYear(), m: now.getMonth() };
+  PSEL = null;
+  var grid = $("pGrid");
+  if (!grid) return;
+  grid.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest(".pday") : null;
+    if (b && b.getAttribute("data-day")) pOpen(b.getAttribute("data-day"));
+  });
+  $("pPrev").addEventListener("click", function () {
+    PVIEW.m--; if (PVIEW.m < 0) { PVIEW.m = 11; PVIEW.y--; }
+    pRenderCal();
+  });
+  $("pNext").addEventListener("click", function () {
+    PVIEW.m++; if (PVIEW.m > 11) { PVIEW.m = 0; PVIEW.y++; }
+    pRenderCal();
+  });
+  $("pMonth").addEventListener("click", function (e) {
+    if (e.target && e.target.id === "pGoToday") {
+      var n = new Date();
+      PVIEW = { y: n.getFullYear(), m: n.getMonth() };
+      pRenderCal();
+    }
+  });
+  var sum = $("pSum");
+  if (sum) sum.addEventListener("click", function (e) {
+    if (e.target && e.target.id === "pQuick") pOpenSettings(true);
+  });
+  var memos = $("pMemos");
+  if (memos) memos.addEventListener("click", function (e) {
+    var b = e.target.closest ? e.target.closest(".pmrow") : null;
+    if (b && b.getAttribute("data-day")) pOpen(b.getAttribute("data-day"));
+  });
+  var gear = $("pGear");
+  if (gear) gear.addEventListener("click", function () {
+    var p = $("pSettings");
+    var open = p.hidden;
+    p.hidden = !open;
+    gear.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  pBind();
+  pRenderCal();
+}
+
 function medsHTML() {
   return '<div class="card">' +
     '<div class="card-head mid">' +
@@ -1192,6 +2087,7 @@ function pageHTML(d) {
     '<div class="sections">' +
       medsHTML() +
       listHTML() +
+      periodHTML() +
       photoHTML(d) +
       billsHTML(d) +
       moneyHTML(d) +
@@ -1465,6 +2361,7 @@ function bindPage(d) {
   renderMeds();
   renderBills();
   renderItems();
+  periodInit();
 }
 
 /* ── 날짜가 바뀌면 자동으로 오늘/이번 주 상태로 ── */
