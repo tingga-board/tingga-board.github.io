@@ -667,6 +667,119 @@
   .ps-actions .pact { flex: 1; padding: 12px 0; }
   .ps-actions .pact.danger { flex: 0 0 auto; padding: 12px 14px; background: #FFFDF8; }
 
+  /* ── 매달 고정지출 (기기 저장) ───────────────── */
+  .fbsub { font-size: 11px; color: #B3A48E; margin: -9px 0 12px; letter-spacing: -.1px; line-height: 1.5; }
+  .fbsum {
+    display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
+    padding: 0 2px 12px; border-bottom: 1px dashed #F0E2CE;
+  }
+  .fbsum .fblbl { font-size: 11px; font-weight: 800; letter-spacing: .03em; color: #A9782F; margin-bottom: 3px; }
+  .fbsum .fbbig { font-size: 30px; font-weight: 800; letter-spacing: -1.1px; color: #4A3620; font-variant-numeric: tabular-nums; line-height: 1.05; }
+  .fbsum .unit { font-size: 14px; font-weight: 700; color: #A08A6C; padding-bottom: 3px; }
+  .fbsum .fbmeta { margin-left: auto; text-align: right; font-size: 11.5px; font-weight: 600; color: #A4937A; line-height: 1.6; padding-bottom: 2px; }
+  .fbsum .fbmeta b { color: #B45B2E; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .fbgroup + .fbgroup { border-top: 1px dashed #F3E8D6; }
+  .fbghead { display: flex; align-items: center; gap: 8px; padding: 11px 0 2px; }
+  .fbday {
+    font-size: 11px; font-weight: 800; color: #8E5F1C; font-variant-numeric: tabular-nums;
+    background: #FBF0DA; border: 1px solid #F2E0BD; border-radius: 8px; padding: 3px 8px; white-space: nowrap;
+  }
+  .fbgsum { margin-left: auto; font-size: 11px; font-weight: 700; color: #B3A48E; font-variant-numeric: tabular-nums; }
+  .fbrow { display: grid; grid-template-columns: 26px 1fr auto 26px; align-items: center; gap: 9px; padding: 8px 0; }
+  .fbrow + .fbrow { border-top: 1px solid #F8F1E4; }
+  .fbcheck {
+    width: 25px; height: 25px; flex: none; padding: 0 0 1px; cursor: pointer;
+    display: grid; place-items: center; border-radius: 9px;
+    background: #FFFDF8; border: 1.5px solid #E4D5BA; color: transparent;
+    -webkit-appearance: none; transition: background .15s, border-color .15s, color .15s;
+  }
+  .fbcheck svg { width: 13px; height: 13px; }
+  .fbcheck.on { background: linear-gradient(100deg, #A6C098, #7E9C72); border-color: #71905F; color: #FFFDF8; }
+  .fbcheck:focus-visible { outline: 2px solid #C98B3C; outline-offset: 2px; }
+  .fbmain { min-width: 0; }
+  .fbname {
+    font: inherit; font-size: 14px; font-weight: 700; letter-spacing: -.2px; color: #443322;
+    display: block; width: 100%; text-align: left; cursor: pointer; min-width: 0;
+    background: transparent; border: 0; border-bottom: 1px dashed transparent; padding: 2px 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .fbname:hover, .fbname:focus-visible { border-bottom-color: #E4D3B7; }
+  .fbrow.paid .fbname { color: #4E6B43; }
+  .fbamt {
+    font: inherit; font-size: 14px; font-weight: 800; letter-spacing: -.2px; color: #4A3620;
+    background: #FDF8EF; border: 1px solid #F1E5D2; border-radius: 11px;
+    padding: 6px 10px; cursor: pointer; white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  .fbamt small { font-size: 11px; font-weight: 700; color: #A08A6C; margin-left: 2px; }
+  .fbamt.unset { background: #FDECE3; border-color: #F7D8C7; color: #B45B2E; font-size: 11.5px; font-weight: 800; padding: 6px 8px; }
+  .fbamt:active { transform: translateY(1px); }
+  .fbrow.paid .fbamt { color: #97A98C; text-decoration: line-through; text-decoration-color: #CBD8C2; }
+  .fbrow.paid .fbamt small { color: #AEBBA5; }
+  .fbrow.paid .fbamt.unset { color: #B45B2E; text-decoration: none; }
+  .fbamtin, .fbnamein {
+    font: inherit; font-size: 14px; font-weight: 800; color: #443322; min-width: 0;
+    background: #FFFDF8; border: 1px solid #DDBE8F; border-radius: 11px; padding: 6px 9px;
+    box-shadow: 0 0 0 3px rgba(201,139,60,.13); -webkit-appearance: none;
+  }
+  .fbamtin { text-align: right; width: 108px; font-variant-numeric: tabular-nums; }
+  .fbnamein { width: 100%; text-align: left; font-weight: 700; }
+  .fbdel {
+    width: 26px; height: 26px; flex: none; padding: 0 0 2px; border-radius: 8px; cursor: pointer;
+    background: transparent; border: 1px solid transparent; color: #C6B69C; font-size: 15px; line-height: 1;
+  }
+  .fbdel:hover { background: #FBEAE3; color: #B4553A; border-color: #F3D4C8; }
+  .fbempty { font-size: 12.5px; color: #B0A08A; padding: 16px 2px 8px; line-height: 1.65; }
+  .fbempty b { color: #8E5F1C; font-weight: 800; }
+  .fbacts { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 12px; margin-top: 6px; border-top: 1px solid #F6EEDF; }
+  .fbbtn {
+    font: inherit; font-size: 12px; font-weight: 800; color: #8A6B3F; white-space: nowrap; cursor: pointer;
+    background: #FFFDF8; border: 1px solid #EEDFC4; border-radius: 999px; padding: 7px 13px;
+  }
+  .fbbtn[aria-expanded="true"] { background: #FBF0DA; border-color: #F2E0BD; color: #A9782F; }
+  .fbbtn.solid { background: linear-gradient(100deg, #F4D39C, #E9B765); border-color: #E3C087; color: #5A3B12; }
+  .fbbtn:active { transform: translateY(1px); }
+  .fbbtn:focus-visible { outline: 2px solid #C98B3C; outline-offset: 2px; }
+  .fbpanel { margin-top: 11px; padding: 12px; background: #FDF8EF; border: 1px solid #F1E5D2; border-radius: 14px; }
+  .fbpanel[hidden] { display: none; }
+  .fbprow { display: flex; align-items: center; gap: 7px; }
+  .fbprow + .fbprow { margin-top: 8px; }
+  .fbpi {
+    display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0;
+    font-size: 12px; font-weight: 700; color: #7A6446;
+    background: #FFFDF8; border: 1px solid #EFE2CC; border-radius: 11px; padding: 7px 9px;
+  }
+  .fbpi.day { flex: 0 0 auto; }
+  .fbpi input {
+    font: inherit; font-size: 13.5px; font-weight: 700; color: #443322;
+    background: transparent; border: 0; outline: none; min-width: 0; width: 100%; -webkit-appearance: none;
+  }
+  .fbpi.day input { width: 30px; text-align: center; font-weight: 800; }
+  .fbpi:focus-within { border-color: #DDBE8F; box-shadow: 0 0 0 3px rgba(201,139,60,.13); }
+  #fbBulkIn {
+    width: 100%; font: inherit; font-size: 13px; font-weight: 600; color: #443322;
+    background: #FFFDF8; border: 1px solid #EFE2CC; border-radius: 12px;
+    padding: 10px 12px; line-height: 1.55; resize: vertical; -webkit-appearance: none;
+  }
+  #fbBulkIn:focus { outline: none; border-color: #DDBE8F; box-shadow: 0 0 0 3px rgba(201,139,60,.13); }
+  .fbpact { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 9px; }
+  .fbmsg { font-size: 11.5px; font-weight: 700; color: #7B9470; line-height: 1.5; }
+  .fbmsg.err { color: #B4553A; }
+  .fbnote { font-size: 10.5px; color: #A4937A; line-height: 1.55; margin-top: 8px; letter-spacing: -.1px; }
+  .fbundo {
+    display: none; align-items: center; gap: 10px; margin-top: 10px;
+    padding: 9px 12px; border-radius: 12px;
+    background: #FBF2E1; border: 1px dashed #EBD9B8;
+    font-size: 12px; font-weight: 600; color: #8A6B3F;
+  }
+  .fbundo.show { display: flex; }
+  .fbundo span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fbundo button {
+    margin-left: auto; font: inherit; font-size: 12px; font-weight: 800; color: #A9782F;
+    background: transparent; border: none; cursor: pointer; flex: none;
+    text-decoration: underline; text-underline-offset: 2px;
+  }
+  .fbfoot { margin-top: 10px; font-size: 10.5px; color: #B3A48E; line-height: 1.6; letter-spacing: -.1px; }
+
   /* ── 잠금 화면 ───────────────────────────── */
   .lock {
     position: fixed; inset: 0; z-index: 40;
@@ -818,6 +931,13 @@
     .psheet { padding: 0; }
     .ps-box { max-width: none; border-radius: 22px 22px 0 0; }
     .pnumrow { gap: 8px; }
+    .fbsum .fbbig { font-size: 25px; }
+    .fbsum .fbmeta { margin-left: 0; width: 100%; text-align: left; padding-bottom: 0; }
+    .fbrow { grid-template-columns: 25px 1fr auto 24px; gap: 7px; padding: 7px 0; }
+    .fbname { font-size: 13.5px; }
+    .fbamt { font-size: 13px; padding: 5px 8px; }
+    .fbamtin { width: 92px; font-size: 13px; }
+    .fbprow { gap: 6px; }
   }
 </style>
 </head>
@@ -1219,6 +1339,391 @@ function billsHTML(d) {
     '<div class="splitbar">' + bar + '</div>' +
     rows +
     '<div class="bill-foot" id="billFoot">' + esc(b.note) + '</div></div>';
+}
+
+/* ══════════════════════════════════════════════
+   매달 고정지출
+   항목·금액·월별 출금 체크는 오직 이 기기
+   localStorage(todayboard_fixed_bills_v1)에만 둔다.
+   index.html과 board-patch.json에는 항목도 금액도 남기지 않는다.
+   ══════════════════════════════════════════════ */
+var FIXED_KEY = "todayboard_fixed_bills_v1";
+var FB = null, FB_UNDO = null, FB_UNDO_T = null;
+
+function fbId() { return "f" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+function fbMonthKey(d) { d = d || new Date(); return d.getFullYear() + "-" + pad2(d.getMonth() + 1); }
+function fbNum(n) { return String(n == null ? 0 : n).replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+function fbItem(id) {
+  for (var i = 0; FB && i < FB.items.length; i++) if (FB.items[i].id === id) return FB.items[i];
+  return null;
+}
+/* 저장된 값을 읽을 때마다 모양을 다듬는다. 이번 달 포함 최근 3개월 체크만 남긴다. */
+function fbClean(raw) {
+  var out = { v: 1, items: [], paid: {} };
+  if (!raw || typeof raw !== "object") return out;
+  var seen = {};
+  (Array.isArray(raw.items) ? raw.items : []).forEach(function (it) {
+    if (!it || typeof it !== "object") return;
+    var name = typeof it.name === "string" ? it.name.replace(/\s+/g, " ").trim().slice(0, 40) : "";
+    if (!name) return;
+    var id = typeof it.id === "string" && it.id ? it.id.slice(0, 24) : fbId();
+    if (seen[id]) id = fbId();
+    seen[id] = true;
+    var day = parseInt(it.day, 10);
+    if (!(day >= 1 && day <= 31)) day = 1;
+    var amt = null;
+    if (typeof it.amount === "number" && isFinite(it.amount) && it.amount >= 0) amt = Math.round(it.amount);
+    else if (typeof it.amount === "string" && /\d/.test(it.amount)) amt = parseInt(it.amount.replace(/[^0-9]/g, ""), 10);
+    if (!(amt >= 0)) amt = null;
+    out.items.push({ id: id, day: day, name: name, amount: amt });
+  });
+  var mk = fbMonthKey().split("-"), y = +mk[0], m = +mk[1], keepMonths = {};
+  for (var k = 0; k < 3; k++) {
+    var yy = y, mm = m - 1 - k;
+    while (mm < 0) { mm += 12; yy--; }
+    keepMonths[yy + "-" + pad2(mm + 1)] = true;
+  }
+  if (raw.paid && typeof raw.paid === "object") {
+    Object.keys(raw.paid).forEach(function (mon) {
+      if (!keepMonths[mon]) return;
+      var rec = raw.paid[mon];
+      if (!rec || typeof rec !== "object") return;
+      var on = {};
+      Object.keys(rec).forEach(function (id) { if (seen[id] && rec[id]) on[id] = true; });
+      if (Object.keys(on).length) out.paid[mon] = on;
+    });
+  }
+  return out;
+}
+function fbLoad() {
+  var raw = null;
+  try { raw = localStorage.getItem(FIXED_KEY); } catch (e) {}
+  var s = null;
+  if (raw) { try { s = JSON.parse(raw); } catch (e) { s = null; } }
+  return fbClean(s);
+}
+function fbSave() {
+  if (!FB) return false;
+  FB = fbClean(FB);
+  try { localStorage.setItem(FIXED_KEY, JSON.stringify(FB)); return true; }
+  catch (e) { return false; }
+}
+
+/* ── 이번 달 합계 · 완료 수 ─────────────────── */
+function fbStats() {
+  var mon = fbMonthKey();
+  var box = (FB && FB.paid && FB.paid[mon]) || {};
+  var items = FB ? FB.items.slice() : [];
+  items.sort(function (a, b) { return a.day - b.day; });
+  var total = 0, leftSum = 0, paidN = 0, unset = 0;
+  items.forEach(function (it) {
+    if (it.amount == null) unset++;
+    else total += it.amount;
+    if (box[it.id]) paidN++;
+    else if (it.amount != null) leftSum += it.amount;
+  });
+  return { mon: mon, items: items, box: box, total: total, leftSum: leftSum,
+    paidN: paidN, unset: unset, left: items.length - paidN };
+}
+
+function fbRowHTML(it, done) {
+  var amt = it.amount == null
+    ? '<button class="fbamt unset" type="button" data-edit="amount" aria-label="' + esc(it.name) + ' 금액 입력">금액 입력</button>'
+    : '<button class="fbamt" type="button" data-edit="amount" aria-label="' + esc(it.name) + ' ' + fbNum(it.amount) + '원, 금액 고치기">' +
+      fbNum(it.amount) + '<small>원</small></button>';
+  return '<div class="fbrow' + (done ? ' paid' : '') + '" data-id="' + esc(it.id) + '">' +
+    '<button class="fbcheck' + (done ? ' on' : '') + '" type="button" role="checkbox" aria-checked="' + (done ? 'true' : 'false') +
+      '" aria-label="' + esc(it.name) + ' 이번 달 출금 완료">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.6 12.6l4.9 4.9 9.9-10.4"/></svg></button>' +
+    '<div class="fbmain"><button class="fbname" type="button" data-edit="name" aria-label="' + esc(it.name) + ', 이름 고치기">' + esc(it.name) + '</button></div>' +
+    amt +
+    '<button class="fbdel" type="button" aria-label="' + esc(it.name) + ' 삭제">&times;</button>' +
+  '</div>';
+}
+
+function fbRowsHTML(st) {
+  if (!st.items.length) {
+    return '<div class="fbempty">아직 넣은 항목이 없어요.<br>' +
+      '<b>＋ 항목 추가</b>로 하나씩, <b>일괄 추가</b>에 붙여넣으면 한 번에 들어가요.</div>';
+  }
+  var groups = [], cur = null;
+  st.items.forEach(function (it) {
+    if (!cur || cur.day !== it.day) { cur = { day: it.day, rows: [], sum: 0, unset: 0 }; groups.push(cur); }
+    cur.rows.push(it);
+    if (it.amount == null) cur.unset++;
+    else cur.sum += it.amount;
+  });
+  return groups.map(function (g) {
+    var meta = g.rows.length > 1 ? (g.sum ? fbNum(g.sum) + '원' : '') : '';
+    if (g.rows.length > 1 && g.unset) meta += (meta ? ' · ' : '') + '미정 ' + g.unset + '건';
+    return '<div class="fbgroup">' +
+      '<div class="fbghead"><span class="fbday">' + g.day + '일</span><span class="fbgsum">' + meta + '</span></div>' +
+      g.rows.map(function (it) { return fbRowHTML(it, !!st.box[it.id]); }).join('') +
+    '</div>';
+  }).join('');
+}
+
+function fbRender() {
+  var list = $("fbList");
+  if (!list || !FB) return;
+  var st = fbStats();
+  list.innerHTML = fbRowsHTML(st);
+  var tag = $("fbTag");
+  if (tag) {
+    var all = st.items.length > 0 && st.paidN === st.items.length;
+    tag.textContent = st.items.length ? '이번 달 완료 ' + st.paidN + '/' + st.items.length + '건' : '이번 달 0건';
+    tag.className = 'tag' + (all ? ' done' : ' hot');
+  }
+  var sum = $("fbSum");
+  if (sum) {
+    var meta = st.items.length
+      ? '미납 ' + st.left + '건 · <b>' + fbNum(st.leftSum) + '원</b>' + (st.unset ? '<br>금액 미정 ' + st.unset + '건' : '')
+      : '항목을 넣으면 합계가 여기에 보여요';
+    sum.innerHTML = '<div><div class="fblbl">이번 달 합계</div>' +
+      '<div><span class="fbbig">' + fbNum(st.total) + '</span><span class="unit">원</span></div></div>' +
+      '<div class="fbmeta">' + meta + '</div>';
+  }
+}
+
+/* ── 항목 하나 고치기 · 체크 · 삭제 ─────────── */
+function fbStartEdit(btn) {
+  if (!btn || !btn.parentNode) return;
+  var row = btn.closest ? btn.closest('.fbrow') : null;
+  if (!row) return;
+  var it = fbItem(row.getAttribute('data-id'));
+  if (!it) return;
+  var field = btn.getAttribute('data-edit');
+  var inp = document.createElement('input');
+  inp.type = 'text';
+  inp.className = field === 'amount' ? 'fbamtin' : 'fbnamein';
+  inp.maxLength = 40;
+  if (field === 'amount') {
+    inp.setAttribute('inputmode', 'numeric');
+    inp.value = it.amount == null ? '' : String(it.amount);
+    inp.setAttribute('aria-label', it.name + ' 금액');
+  } else {
+    inp.value = it.name;
+    inp.setAttribute('aria-label', '이름');
+  }
+  var finish = function (keep) {
+    if (!inp.parentNode) return;
+    inp.onblur = null;
+    var v = inp.value;
+    if (keep) {
+      if (field === 'amount') {
+        var digits = v.replace(/[^0-9]/g, '');
+        it.amount = digits ? parseInt(digits, 10) : null;
+      } else {
+        var nm = v.replace(/\s+/g, ' ').trim().slice(0, 40);
+        if (nm) it.name = nm;
+      }
+      fbSave();
+    }
+    fbRender();
+  };
+  inp.onkeydown = function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+    else if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+  };
+  inp.onblur = function () { finish(true); };
+  btn.parentNode.replaceChild(inp, btn);
+  inp.focus();
+  try { inp.select(); } catch (e) {}
+}
+function fbToggle(id) {
+  var it = fbItem(id);
+  if (!it) return;
+  var mon = fbMonthKey();
+  if (!FB.paid || typeof FB.paid !== 'object') FB.paid = {};
+  var box = FB.paid[mon] || (FB.paid[mon] = {});
+  if (box[id]) delete box[id]; else box[id] = true;
+  if (!Object.keys(box).length) delete FB.paid[mon];
+  fbSave(); fbRender();
+}
+function fbHideUndo() {
+  clearTimeout(FB_UNDO_T);
+  FB_UNDO = null;
+  var box = $("fbUndo");
+  if (box) box.classList.remove('show');
+}
+function fbDelete(id) {
+  var idx = -1;
+  for (var i = 0; FB && i < FB.items.length; i++) if (FB.items[i].id === id) { idx = i; break; }
+  if (idx < 0) return;
+  var item = FB.items[idx];
+  FB.items.splice(idx, 1);
+  if (FB.paid) Object.keys(FB.paid).forEach(function (mon) { delete FB.paid[mon][id]; });
+  FB_UNDO = { item: item, index: idx };
+  fbSave(); fbRender();
+  var box = $("fbUndo");
+  if (box) {
+    $("fbUndoTxt").textContent = '\u201C' + item.name + '\u201D 지웠어요';
+    box.classList.add('show');
+    clearTimeout(FB_UNDO_T);
+    FB_UNDO_T = setTimeout(fbHideUndo, 8000);
+  }
+}
+
+/* ── 추가 · 붙여넣기로 한 번에 ─────────────── */
+function fbAddOne() {
+  var dEl = $("fbDay"), nEl = $("fbName"), aEl = $("fbAmount"), msg = $("fbAddMsg");
+  if (!dEl || !nEl || !aEl) return;
+  var name = nEl.value.replace(/\s+/g, ' ').trim().slice(0, 40);
+  if (!name) {
+    if (msg) { msg.className = 'fbmsg err'; msg.textContent = '이름을 적어 주세요.'; }
+    try { nEl.focus(); } catch (e) {}
+    return;
+  }
+  var day = parseInt(dEl.value.replace(/[^0-9]/g, ''), 10);
+  if (!(day >= 1 && day <= 31)) day = 1;
+  var digits = aEl.value.replace(/[^0-9]/g, '');
+  var amount = digits ? parseInt(digits, 10) : null;
+  FB.items.push({ id: fbId(), day: day, name: name, amount: amount });
+  fbSave(); fbRender();
+  nEl.value = ''; aEl.value = '';
+  if (msg) {
+    msg.className = 'fbmsg';
+    msg.textContent = name + ' 추가했어요' + (amount == null ? ' · 금액은 나중에 넣어도 돼요' : '');
+  }
+  try { nEl.focus(); } catch (e) {}
+}
+/* ‘25일 카드 대출 이자 변동’ / ‘1일 월세 500,000원’ / ‘15일 통신비 2만원’ 같은 줄을 읽는다. */
+function fbParseBulk(text) {
+  var out = [], noDay = 0, parts = [];
+  /* 쉼표는 줄 구분이지만, 1,000 같은 자릿수 쉼표는 나누지 않는다. */
+  String(text || '').split(/[\n\r;]+/).forEach(function (line) {
+    line.split(/,(?!\d{3}(?:\D|$))/).forEach(function (p) { parts.push(p); });
+  });
+  parts.forEach(function (raw) {
+    var t = String(raw).replace(/\s+/g, ' ').trim();
+    if (!t) return;
+    var day = null, amount = null;
+    var mDay = t.match(/^(?:매월|매달)?\s*(\d{1,2})\s*일\s*/);
+    if (mDay) { day = parseInt(mDay[1], 10); t = t.slice(mDay[0].length).trim(); }
+    var mMan = t.match(/(\d+(?:[.,]\d+)?)\s*만\s*원?\s*$/);
+    if (mMan) {
+      amount = Math.round(parseFloat(mMan[1].replace(',', '.')) * 10000);
+      t = t.slice(0, mMan.index).trim();
+    } else {
+      var mNum = t.match(/([\d,]{1,15})\s*원?\s*$/);
+      if (mNum) {
+        var n = parseInt(mNum[1].replace(/,/g, ''), 10);
+        if (n >= 0 && isFinite(n)) amount = n;
+        if (amount != null) t = t.slice(0, mNum.index).trim();
+      }
+    }
+    t = t.replace(/\s*(?:변동|미정|모름)$/, '').trim();
+    if (!t) return;
+    if (day == null) { day = 1; noDay++; }
+    if (!(day >= 1 && day <= 31)) day = 1;
+    out.push({ id: fbId(), day: day, name: t.slice(0, 40), amount: amount });
+  });
+  return { items: out, noDay: noDay };
+}
+function fbApplyBulk() {
+  var ta = $("fbBulkIn"), msg = $("fbBulkMsg");
+  if (!ta) return;
+  var r = fbParseBulk(ta.value);
+  if (!r.items.length) {
+    if (msg) { msg.className = 'fbmsg err'; msg.textContent = '읽을 수 있는 줄이 없어요. 예) 25일 통신비 38,000'; }
+    return;
+  }
+  var unset = 0;
+  r.items.forEach(function (it) { if (it.amount == null) unset++; FB.items.push(it); });
+  fbSave(); fbRender();
+  ta.value = '';
+  if (msg) {
+    msg.className = 'fbmsg';
+    msg.textContent = r.items.length + '건 넣었어요' + (unset ? ' · 금액 미정 ' + unset + '건' : '') +
+      (r.noDay ? ' · 결제일이 없던 ' + r.noDay + '건은 1일로' : '');
+  }
+}
+
+function fixedBillsHTML() {
+  return '<div class="card fixed" id="fixedCard">' +
+    '<div class="card-head mid">' +
+      '<span class="hicon emoji">💸</span>' +
+      '<h3>매달 고정지출</h3>' +
+      '<span class="tag" id="fbTag">이번 달 0건</span>' +
+    '</div>' +
+    '<div class="fbsub">이 기기에만 저장 · 매월 1일 자동 초기화</div>' +
+    '<div class="fbsum" id="fbSum"></div>' +
+    '<div id="fbList"></div>' +
+    '<div class="fbundo" id="fbUndo"><span id="fbUndoTxt"></span>' +
+      '<button type="button" id="fbUndoBtn">되돌리기</button></div>' +
+    '<div class="fbacts">' +
+      '<button class="fbbtn" type="button" id="fbAddBtn" aria-expanded="false" aria-controls="fbAdd">＋ 항목 추가</button>' +
+      '<button class="fbbtn" type="button" id="fbBulkBtn" aria-expanded="false" aria-controls="fbBulk">일괄 추가</button>' +
+    '</div>' +
+    '<div class="fbpanel" id="fbAdd" hidden>' +
+      '<div class="fbprow">' +
+        '<label class="fbpi day"><span>매월</span><input id="fbDay" inputmode="numeric" maxlength="2" value="1" aria-label="매월 결제일"><span>일</span></label>' +
+        '<label class="fbpi"><input id="fbName" maxlength="40" placeholder="예) 통신비" aria-label="지출 이름"></label>' +
+      '</div>' +
+      '<div class="fbprow">' +
+        '<label class="fbpi"><input id="fbAmount" inputmode="numeric" maxlength="12" placeholder="금액 (모르면 비워두기)" aria-label="금액"></label>' +
+        '<button class="fbbtn solid" type="button" id="fbAddSave">추가</button>' +
+      '</div>' +
+      '<div class="fbmsg" id="fbAddMsg" role="status" aria-live="polite"></div>' +
+    '</div>' +
+    '<div class="fbpanel" id="fbBulk" hidden>' +
+      '<textarea id="fbBulkIn" rows="3" placeholder="예: 1일 월세 500000, 15일 통신비 변동" aria-label="고정지출 붙여넣기"></textarea>' +
+      '<div class="fbpact"><button class="fbbtn solid" type="button" id="fbBulkApply">한 번에 추가</button>' +
+        '<span class="fbmsg" id="fbBulkMsg" role="status" aria-live="polite"></span></div>' +
+      '<div class="fbnote">줄바꿈이나 쉼표로 나누고 결제일을 ‘25일’처럼 앞에 적어 주세요. 금액이 매달 달라지면 ‘변동’이라고 적거나 비워두면 미정으로 들어가요.</div>' +
+    '</div>' +
+    '<div class="fbfoot">체크는 이번 달에만 적용되고 다음 달 1일부터 다시 미완료로 시작해요. 이름이나 금액을 누르면 그 자리에서 고칠 수 있어요.</div>' +
+  '</div>';
+}
+
+function fixedInit() {
+  FB = fbLoad();
+  var card = $("fixedCard");
+  if (!card) return;
+  card.addEventListener('click', function (e) {
+    var t = e.target;
+    var row = t.closest ? t.closest('.fbrow') : null;
+    if (t.closest && t.closest('.fbcheck') && row) { fbToggle(row.getAttribute('data-id')); return; }
+    if (t.closest && t.closest('.fbdel') && row) { fbDelete(row.getAttribute('data-id')); return; }
+    var ed = t.closest ? t.closest('[data-edit]') : null;
+    if (ed && row) fbStartEdit(ed);
+  });
+  var addBtn = $("fbAddBtn"), bulkBtn = $("fbBulkBtn");
+  var openPanel = function (btn, panel, other, otherBtn) {
+    if (!btn || !panel) return;
+    var open = panel.hidden;
+    panel.hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open && other && otherBtn) { other.hidden = true; otherBtn.setAttribute('aria-expanded', 'false'); }
+  };
+  if (addBtn) addBtn.addEventListener('click', function () {
+    openPanel(addBtn, $("fbAdd"), $("fbBulk"), bulkBtn);
+    if (!$("fbAdd").hidden) { var n = $("fbName"); if (n) { try { n.focus(); } catch (e) {} } }
+  });
+  if (bulkBtn) bulkBtn.addEventListener('click', function () {
+    openPanel(bulkBtn, $("fbBulk"), $("fbAdd"), addBtn);
+    if (!$("fbBulk").hidden) { var t = $("fbBulkIn"); if (t) { try { t.focus(); } catch (e) {} } }
+  });
+  var save = $("fbAddSave");
+  if (save) save.addEventListener('click', fbAddOne);
+  ['fbName', 'fbAmount', 'fbDay'].forEach(function (id) {
+    var el = $(id);
+    if (el) el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); fbAddOne(); }
+    });
+  });
+  var ba = $("fbBulkApply");
+  if (ba) ba.addEventListener('click', fbApplyBulk);
+  var ub = $("fbUndoBtn");
+  if (ub) ub.addEventListener('click', function () {
+    if (!FB_UNDO) return;
+    var at = Math.min(FB_UNDO.index, FB.items.length);
+    var item = FB_UNDO.item;
+    FB.items.splice(at, 0, item);
+    fbHideUndo();
+    fbSave(); fbRender();
+  });
+  fbRender();
 }
 
 function couponsHTML(d) {
@@ -2082,7 +2587,7 @@ function stripHTML(d) {
   return cards ? '<div class="strip">' + cards + '</div>' : '';
 }
 
-/* ① 복약 체크 → ② 할 일·구매 목록 → ③ 카드값 → ④ 모은 돈 → ⑤ 쿠폰 → ⑥ 날씨 */
+/* ① 복약 체크 → ② 할 일·구매 목록 → ③ 카드값 → 매달 고정지출 → ④ 모은 돈 → ⑤ 쿠폰 → ⑥ 날씨 */
 function pageHTML(d) {
   var wk = d.weekTasks || {};
   return bannerHTML(d) +
@@ -2092,6 +2597,7 @@ function pageHTML(d) {
       periodHTML() +
       photoHTML(d) +
       billsHTML(d) +
+      fixedBillsHTML() +
       moneyHTML(d) +
       couponsHTML(d) +
       weatherHTML(d) +
@@ -2362,6 +2868,7 @@ function bindPage(d) {
 
   renderMeds();
   renderBills();
+  fixedInit();
   renderItems();
   periodInit();
 }
@@ -2372,7 +2879,13 @@ function watchDay() {
   stamp = dayKey(new Date()) + "|" + weekKey(new Date());
   setInterval(function () {
     var s = dayKey(new Date()) + "|" + weekKey(new Date());
-    if (s !== stamp) { stamp = s; if (DATA && !$("page").hidden) renderMeds(); }
+    if (s !== stamp) {
+      stamp = s;
+      if (DATA && !$("page").hidden) {
+        renderMeds();
+        if ($("fixedCard")) { FB = fbLoad(); fbRender(); } /* 달이 바뀌면 새 달 체크로 */
+      }
+    }
   }, 30000);
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden && DATA && !$("page").hidden) { renderMeds(); refreshPatch(); }
