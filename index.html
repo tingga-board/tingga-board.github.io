@@ -482,6 +482,10 @@
     padding: 5px 11px; cursor: pointer; white-space: nowrap;
   }
   .pgear[aria-expanded="true"] { background: #F4E4C8; }
+  /* 넓은 화면에서 달력이 과하게 늘어나지 않도록 카드 안쪽만 폭을 잡아 가운데로 */
+  .period .card-head, .period #pSum, .period .pcal, .period .pmemos, .period .pfoot, .period .psettings {
+    width: 100%; max-width: 620px; margin-left: auto; margin-right: auto;
+  }
   .psum {
     display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap;
     padding: 0 2px 12px; border-bottom: 1px dashed #F0E2CE; margin-bottom: 12px;
