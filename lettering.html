@@ -312,6 +312,19 @@
     font-size: 11px; color: #A9703F; padding: 4px 9px; border-radius: 999px;
     background: #FBF0E1; border: 1px solid #F0DFC8; white-space: nowrap;
   }
+  .ctrl-slider { display: flex; align-items: center; gap: 8px; }
+  .ctrl-slider input[type=range] { flex: 1 1 auto; min-width: 0; margin: 0; }
+  .step-btn {
+    flex: 0 0 auto; width: 34px; height: 34px; min-width: 34px; padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid #E7D8C4; border-radius: 12px; background: #FFFDF9;
+    color: #A9703F; font-family: inherit; font-size: 17px; font-weight: 700; line-height: 1;
+    -webkit-user-select: none; user-select: none;
+    -webkit-touch-callout: none; touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .step-btn:active { background: #FBF0E1; color: #8C5628; }
+  .step-btn:disabled { opacity: .35; }
   input[type=range] {
     -webkit-appearance: none; appearance: none;
     display: block; width: 100%; height: 26px; margin: 1px 0 0; background: transparent;
@@ -337,6 +350,7 @@
   }
   .scale {
     display: flex; justify-content: space-between; margin-top: -3px;
+    padding: 0 42px;   /* - / + 버튼만큼 안쪽으로 들여 슬라이더 눈금과 맞춘다 */
     font-size: 10px; color: #BCA894; font-variant-numeric: tabular-nums;
   }
 
@@ -466,12 +480,20 @@
 
       <div class="ctrl">
         <div class="ctrl-head"><span class="ctrl-label">글씨 크기</span><span class="ctrl-val" id="sizeVal">50px</span></div>
-        <input type="range" id="size" min="16" max="120" step="1" value="50" aria-label="글씨 크기">
+        <div class="ctrl-slider">
+          <button class="step-btn" type="button" data-target="size" data-dir="-" aria-controls="size" aria-label="글씨 크기 줄이기">−</button>
+          <input type="range" id="size" min="16" max="120" step="1" value="50" aria-label="글씨 크기">
+          <button class="step-btn" type="button" data-target="size" data-dir="+" aria-controls="size" aria-label="글씨 크기 늘리기">+</button>
+        </div>
       </div>
 
       <div class="ctrl">
         <div class="ctrl-head"><span class="ctrl-label">자간</span><span class="ctrl-val" id="spacingVal">0</span></div>
-        <input type="range" id="spacing" min="-8" max="30" step="0.5" value="0" aria-label="자간">
+        <div class="ctrl-slider">
+          <button class="step-btn" type="button" data-target="spacing" data-dir="-" aria-controls="spacing" aria-label="자간 줄이기">−</button>
+          <input type="range" id="spacing" min="-8" max="30" step="0.5" value="0" aria-label="자간">
+          <button class="step-btn" type="button" data-target="spacing" data-dir="+" aria-controls="spacing" aria-label="자간 늘리기">+</button>
+        </div>
       </div>
 
       <div class="ctrl">
@@ -479,14 +501,22 @@
           <span class="ctrl-label">곡률</span>
           <span class="ctrl-val" id="curveVal">직선</span>
         </div>
-        <input type="range" id="curve" min="-100" max="100" step="1" value="0" aria-label="곡률">
+        <div class="ctrl-slider">
+          <button class="step-btn" type="button" data-target="curve" data-dir="-" aria-controls="curve" aria-label="곡률 줄이기">−</button>
+          <input type="range" id="curve" min="-100" max="100" step="1" value="0" aria-label="곡률">
+          <button class="step-btn" type="button" data-target="curve" data-dir="+" aria-controls="curve" aria-label="곡률 늘리기">+</button>
+        </div>
         <div class="scale"><span>원형 -100</span><span>직선 0</span><span>원형 +100</span></div>
         <button class="mini" id="curveReset" type="button" style="margin-top:7px">직선으로 되돌리기</button>
       </div>
 
       <div class="ctrl">
         <div class="ctrl-head"><span class="ctrl-label">줄 간격</span><span class="ctrl-val" id="lhVal">1.15</span></div>
-        <input type="range" id="lineHeight" min="0.8" max="2.2" step="0.02" value="1.15" aria-label="줄 간격">
+        <div class="ctrl-slider">
+          <button class="step-btn" type="button" data-target="lineHeight" data-dir="-" aria-controls="lineHeight" aria-label="줄 간격 줄이기">−</button>
+          <input type="range" id="lineHeight" min="0.8" max="2.2" step="0.02" value="1.15" aria-label="줄 간격">
+          <button class="step-btn" type="button" data-target="lineHeight" data-dir="+" aria-controls="lineHeight" aria-label="줄 간격 늘리기">+</button>
+        </div>
       </div>
 
       <div class="row-between">
@@ -1842,6 +1872,98 @@
     }
   }
 
+  /* ================= 크기와 모양 : - / + 버튼 =================
+     슬라이더의 min·max·step 을 그대로 읽어 한 번에 한 스텝씩 움직이고,
+     값이 바뀌면 슬라이더의 input 이벤트를 그대로 보내
+     표시 수치·캔버스·상태 저장이 슬라이더를 끌 때와 똑같이 반영되게 한다. */
+  var stepBtns = [];
+  var pressDelay = 0, pressRepeat = 0;
+
+  /* dir 은 -1 / 1. 한 스텝 움직였으면 true, 이미 끝값이라 그대로면 false */
+  function stepRange(id, dir) {
+    var el = $(id);
+    if (!el) return false;
+    var min = parseFloat(el.min), max = parseFloat(el.max);
+    var step = parseFloat(el.step);
+    if (!isFinite(step) || step <= 0) step = 1;
+    if (!isFinite(min)) min = 0;
+    if (!isFinite(max)) max = 100;
+    var cur = parseFloat(el.value);
+    if (!isFinite(cur)) cur = min;
+    var next = Math.round((cur + step * dir) * 1000) / 1000;   /* 0.02 스텝의 소수 오차 정리 */
+    if (next < min) next = min;
+    if (next > max) next = max;
+    if (next === cur) return false;
+    el.value = next;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    return true;
+  }
+
+  /* 끝값에 닿은 쪽 버튼은 누를 수 없게 한다 */
+  function updateStepBtns() {
+    for (var i = 0; i < stepBtns.length; i++) {
+      var b = stepBtns[i];
+      var el = $(b.getAttribute('data-target'));
+      if (!el) continue;
+      var min = parseFloat(el.min), max = parseFloat(el.max), v = parseFloat(el.value);
+      var dis = b.getAttribute('data-dir') === '-' ? (v <= min) : (v >= max);
+      if (b.disabled !== dis) b.disabled = dis;
+    }
+  }
+
+  function stopPressLoop() {
+    if (pressDelay) { clearTimeout(pressDelay); pressDelay = 0; }
+    if (pressRepeat) { clearInterval(pressRepeat); pressRepeat = 0; }
+  }
+
+  /* 누르는 즉시 한 스텝, 계속 누르고 있으면 잠시 뒤부터 이어서 증감 */
+  function startPressLoop(b) {
+    stopPressLoop();
+    var id = b.getAttribute('data-target');
+    var dir = b.getAttribute('data-dir') === '-' ? -1 : 1;
+    if (!stepRange(id, dir)) return;
+    pressDelay = setTimeout(function () {
+      pressDelay = 0;
+      pressRepeat = setInterval(function () {
+        if (!stepRange(id, dir)) stopPressLoop();
+      }, 70);
+    }, 420);
+  }
+
+  function bindStepButtons() {
+    stepBtns = [].slice.call(document.querySelectorAll('.step-btn'));
+    for (var i = 0; i < stepBtns.length; i++) {
+      (function (b) {
+        var id = b.getAttribute('data-target');
+        var dir = b.getAttribute('data-dir') === '-' ? -1 : 1;
+        var pointerHandled = false;
+
+        b.addEventListener('pointerdown', function () {
+          if (b.disabled) return;
+          pointerHandled = true;      /* 바로 아래 click 은 건너뛴다(두 번 움직이지 않게) */
+          startPressLoop(b);
+        });
+        b.addEventListener('pointerup', stopPressLoop);
+        b.addEventListener('pointerleave', stopPressLoop);
+        b.addEventListener('pointercancel', function () {
+          pointerHandled = false;     /* 취소된 누름은 click 이 오지 않는다 */
+          stopPressLoop();
+        });
+
+        /* 키보드(Enter·Space)나 포인터 이벤트가 없는 브라우저용 */
+        b.addEventListener('click', function () {
+          if (pointerHandled) { pointerHandled = false; return; }
+          if (b.disabled) return;
+          stepRange(id, dir);
+        });
+
+        /* 길게 눌러도 선택·메뉴가 뜨지 않게 */
+        b.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+      })(stepBtns[i]);
+    }
+    updateStepBtns();
+  }
+
   function syncLabels() {
     var it = selItem();
     $('sizeVal').textContent = Math.round(it ? it.size : lastSize) + 'px';
@@ -1849,6 +1971,7 @@
     $('curveVal').textContent = fmtCurve(it ? it.curve : 0);
     $('lhVal').textContent = (Math.round((it ? it.lineHeight : DEFAULT.lineHeight) * 100) / 100).toFixed(2);
     paintRanges();
+    updateStepBtns();
   }
 
   function syncInputs() {
@@ -2538,6 +2661,7 @@
     syncLabels();
     syncPosUI();
     bindEvents();
+    bindStepButtons();
     canvas.classList.toggle('transparent', !state.bg);
     fitStage();
     draw();
