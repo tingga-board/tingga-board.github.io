@@ -497,7 +497,7 @@
           <button type="button" data-v="right">오른쪽</button>
         </div>
       </div>
-      <p class="note">글씨 크기는 마지막으로 정한 값으로 다음에 열 때도 시작해요. 곡률은 열 때마다 항상 직선(0)으로 시작해요.</p>
+      <p class="note">문구·글씨체·크기·곡률·자간·위치는 이 기기에 자동으로 저장되어, 앱을 껐다 켜도 그대로 이어져요. 처음부터 다시 하려면 '처음 상태로' 를 눌러주세요.</p>
     </section>
 
     <section class="card">
@@ -597,7 +597,7 @@
     fontId: 'jua',
     size: 50,
     spacing: 0,
-    curve: 0,          /* 곡률은 저장하지 않는다 — 열 때마다 항상 직선(0)으로 시작 */
+    curve: 0,          /* 새 문구는 직선(0)에서 시작 — 문구마다 정한 곡률은 STATE_KEY 에 함께 저장된다 */
     lineHeight: 1.15,
     align: 'center',
     color: '#4A3326',
@@ -637,6 +637,106 @@
     if (lastSize === storedSize) return;
     storedSize = lastSize;
     try { window.localStorage.setItem(SIZE_KEY, String(lastSize)); } catch (e) {}
+  }
+
+  /* ================= 작업 상태 저장 =================
+     앱을 껐다 켜거나 새로고침해도 작업 중이던 문구·설정이 그대로 남도록
+     상태가 바뀔 때마다(짧은 디바운스) localStorage 에 통째로 저장한다.
+     iOS 홈 화면 웹앱은 unload/beforeunload 를 믿을 수 없어서, 종료 시점이 아니라
+     바뀌는 즉시 저장하고 pagehide·화면 숨김 때 한 번 더 밀어 넣는다. */
+  var STATE_KEY = 'buttertree-lettering-state-v1';
+  var MAX_ITEMS = 12;
+
+  function clampNum(v, lo, hi, dflt) {
+    var n = parseFloat(v);
+    if (!isFinite(n)) return dflt;
+    if (n < lo) n = lo;
+    if (n > hi) n = hi;
+    return n;
+  }
+
+  /* 저장해 둔 상태를 읽어 문구 목록·선택·캔버스 설정으로 되살린다. 없거나 깨졌으면 null */
+  function readStoredState() {
+    try {
+      var raw = window.localStorage.getItem(STATE_KEY);
+      if (!raw) return null;
+      var o = JSON.parse(raw);
+      if (!o || !o.items || typeof o.items.length !== 'number') return null;
+      var items = [], i;
+      for (i = 0; i < o.items.length && i < MAX_ITEMS; i++) {
+        var src = o.items[i] || {};
+        var it = makeItem({
+          text: String(src.text == null ? '' : src.text).slice(0, 140),
+          fontId: String(src.fontId == null ? '' : src.fontId),
+          size: Math.round(clampNum(src.size, 16, 120, DEFAULT.size)),
+          spacing: clampNum(src.spacing, -8, 30, DEFAULT.spacing),
+          curve: Math.round(clampNum(src.curve, -100, 100, DEFAULT.curve)),
+          lineHeight: clampNum(src.lineHeight, 0.8, 2.2, DEFAULT.lineHeight),
+          align: (src.align === 'left' || src.align === 'right') ? src.align : DEFAULT.align
+        });
+        it.offsetX = clampNum(src.offsetX, -MAX_OFFSET, MAX_OFFSET, 0);
+        it.offsetY = clampNum(src.offsetY, -MAX_OFFSET, MAX_OFFSET, 0);
+        items.push(it);
+      }
+      if (!items.length) return null;
+
+      var si = parseInt(o.sel, 10);
+      if (!isFinite(si) || si < 0 || si >= items.length) si = 0;
+
+      var bg = DEFAULT.bg;
+      if (o.bg === null) bg = null;
+      else if (typeof o.bg === 'string' && o.bg) bg = o.bg;
+
+      return {
+        items: items,
+        selId: items[si].id,
+        color: (typeof o.color === 'string' && o.color) ? o.color : DEFAULT.color,
+        bg: bg,
+        guide: (o.guide === true || o.guide === false) ? o.guide : DEFAULT.guide
+      };
+    } catch (e) { return null; }
+  }
+
+  function stateSnapshot() {
+    var items = [], i;
+    for (i = 0; i < state.items.length; i++) {
+      var it = state.items[i];
+      items.push({
+        text: String(it.text == null ? '' : it.text),
+        fontId: String(it.fontId || ''),
+        size: it.size,
+        spacing: it.spacing,
+        curve: it.curve,
+        lineHeight: it.lineHeight,
+        align: it.align,
+        offsetX: it.offsetX,
+        offsetY: it.offsetY
+      });
+    }
+    var sel = selIndex();
+    return {
+      v: 1,
+      items: items,
+      sel: sel < 0 ? 0 : sel,
+      color: state.color,
+      bg: state.bg === undefined ? null : state.bg,
+      guide: !!state.guide
+    };
+  }
+
+  var stateTimer = 0;
+
+  function saveStateNow() {
+    if (stateTimer) { clearTimeout(stateTimer); stateTimer = 0; }
+    if (!state.items.length) return;
+    try {
+      window.localStorage.setItem(STATE_KEY, JSON.stringify(stateSnapshot()));
+    } catch (e) { /* 저장소를 못 쓰는 환경(사생활 보호 모드 등)에서는 이번 화면에서만 */ }
+  }
+
+  function saveStateSoon() {
+    if (stateTimer) return;
+    stateTimer = setTimeout(function () { stateTimer = 0; saveStateNow(); }, 120);
   }
 
   function makeItem(over) {
@@ -1263,6 +1363,7 @@
     it.offsetY = ny;
     syncPosUI();
     draw();
+    saveStateSoon();
     return true;
   }
 
@@ -1390,6 +1491,7 @@
       if (state.selId !== it.id) selectItem(it.id);
       syncMsgSel();
       draw();
+      saveStateSoon();
     });
     ta.addEventListener('focus', function () {
       if (state.selId !== it.id) selectItem(it.id);
@@ -1455,6 +1557,7 @@
     if (!it) return;
     var changed = state.selId !== id;
     state.selId = id;
+    saveStateSoon();      /* 고른 문구도 함께 기억한다 */
     var f = fontFor(it);
     if (f.family && !f.custom) ensureFamily(f.family);
     syncChips();
@@ -1487,6 +1590,7 @@
     syncChips();
     syncPosUI();
     draw();
+    saveStateSoon();
     var ta = textAreaFor(it.id);
     if (ta) {
       try { ta.scrollIntoView({ block: 'center' }); } catch (e) {}
@@ -1511,6 +1615,7 @@
     syncChips();
     syncPosUI();
     draw();
+    saveStateSoon();
     toast('문구를 지웠어요.');
   }
 
@@ -1619,6 +1724,7 @@
     if (!visibleDefaults().length) editMode = false;
     renderFontGrids();
     draw();
+    saveStateSoon();
     preloadAll();
     toast(stored
       ? (wasSelected ? '쓰던 글씨체를 정리하고 다음 글씨체로 바꿨어요.' : '글씨체를 정리했어요. 아래에서 다시 불러올 수 있어요.')
@@ -1635,6 +1741,7 @@
     syncInputs();
     syncLabels();
     draw();
+    saveStateSoon();
     preloadAll();
     toast(stored ? '기본 글씨체를 모두 되돌렸어요.' : '이번 화면에서만 되돌렸어요. 저장 기능을 쓸 수 없어요.');
   }
@@ -1688,6 +1795,7 @@
         state.color = c.v;
         renderSwatches();
         draw();
+        saveStateSoon();
       });
       cr.appendChild(b);
     });
@@ -1706,6 +1814,7 @@
         renderSwatches();
         canvas.classList.toggle('transparent', !state.bg);
         draw();
+        saveStateSoon();
       });
       br.appendChild(b);
     });
@@ -1768,6 +1877,7 @@
     syncChips();
     syncMsgSel();
     draw();
+    saveStateSoon();
     preloadFont(f.family, it.text, it.size);
   }
 
@@ -2057,7 +2167,9 @@
       renderFontGrids();
       syncInputs();
       syncLabels();
+      syncMsgSel();        /* 내 폰트가 늦게 복원돼도 문구 요약의 글씨체 이름을 다시 맞춘다 */
       draw();
+      saveStateNow();     /* 저장된 문구의 내 폰트 지정을 확정해 다시 저장 */
     });
   }
 
@@ -2129,6 +2241,7 @@
     syncInputs();
     syncLabels();
     draw();
+    saveStateSoon();
     preloadAll();
     idbDeleteFont(id).then(function () {
       toast('폰트를 지웠어요.');
@@ -2257,6 +2370,12 @@
     canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
     $('posReset').addEventListener('click', recenter);
 
+    /* 앱을 닫거나 화면을 가릴 때도 저장을 한 번 더 밀어 넣는다 */
+    window.addEventListener('pagehide', saveStateNow);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') saveStateNow();
+    });
+
     $('addMsg').addEventListener('click', addItem);
 
     $('examples').addEventListener('click', function (e) {
@@ -2269,6 +2388,7 @@
       if (ta) ta.value = it.text;
       syncMsgSel();
       draw();
+      saveStateSoon();
     });
 
     /* 크기·자간·곡률·줄간격·정렬은 지금 선택된 문구에만 적용된다 */
@@ -2277,6 +2397,7 @@
       var v = parseFloat(this.value);
       if (it) it.size = v;
       writeLastSize(v);          /* 마지막으로 정한 글자 크기 — 다음에 열 때의 기본값 */
+      saveStateSoon();
       syncLabels();
       syncMsgSel();
       draw();
@@ -2284,6 +2405,7 @@
     $('spacing').addEventListener('input', function () {
       var it = selItem();
       if (it) it.spacing = parseFloat(this.value);
+      saveStateSoon();
       syncLabels();
       syncMsgSel();
       draw();
@@ -2291,6 +2413,7 @@
     $('curve').addEventListener('input', function () {
       var it = selItem();
       if (it) it.curve = parseFloat(this.value);
+      saveStateSoon();
       syncLabels();
       syncMsgSel();
       draw();
@@ -2298,6 +2421,7 @@
     $('lineHeight').addEventListener('input', function () {
       var it = selItem();
       if (it) it.lineHeight = parseFloat(this.value);
+      saveStateSoon();
       syncLabels();
       draw();
     });
@@ -2305,6 +2429,7 @@
       var it = selItem();
       if (it) it.curve = 0;
       $('curve').value = 0;
+      saveStateSoon();
       syncLabels();
       syncMsgSel();
       draw();
@@ -2318,12 +2443,14 @@
       syncInputs();
       syncMsgSel();
       draw();
+      saveStateSoon();
     });
 
     $('guide').addEventListener('click', function () {
       state.guide = !state.guide;
       this.setAttribute('aria-checked', state.guide ? 'true' : 'false');
       draw();
+      saveStateSoon();
     });
 
     $('addFont').addEventListener('click', function () { $('fontFile').click(); });
@@ -2362,6 +2489,7 @@
       renderSwatches();
       canvas.classList.toggle('transparent', !state.bg);
       draw();
+      saveStateSoon();
       toast('처음 상태로 돌아왔어요.');
     });
 
@@ -2384,11 +2512,24 @@
     lastSize = readLastSize();
     storedSize = lastSize;
 
-    var start = fontById(DEFAULT.fontId) || firstAvailableFont();
-    var first = makeItem({ text: DEFAULT.text, size: lastSize, fontId: start ? start.id : '' });
-    if (start && !start.custom) ensureFamily(start.family);
-    state.items = [first];
-    state.selId = first.id;
+    /* 저장해 둔 작업이 있으면 그대로 이어서 연다 (기본 문구로 덮지 않는다) */
+    var restored = readStoredState();
+    if (restored) {
+      state.items = restored.items;
+      state.selId = restored.selId;
+      state.color = restored.color;
+      state.bg = restored.bg;
+      state.guide = restored.guide;
+      var rf = fontById(selFontId());
+      if (rf && !rf.custom) ensureFamily(rf.family);
+      preloadAll();
+    } else {
+      var start = fontById(DEFAULT.fontId) || firstAvailableFont();
+      var first = makeItem({ text: DEFAULT.text, size: lastSize, fontId: start ? start.id : '' });
+      if (start && !start.custom) ensureFamily(start.family);
+      state.items = [first];
+      state.selId = first.id;
+    }
 
     rebuildMessages();
     renderFontGrids();
