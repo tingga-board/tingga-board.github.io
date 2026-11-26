@@ -160,6 +160,40 @@
   }
   .ex:active { background: #FBF1E2; }
 
+  /* ---------- 예시 문구 편집 ---------- */
+  .ex-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 9px; }
+  .ex-tools .restore-link { margin-left: auto; }
+  .ex-tools .mini[aria-pressed="true"] { background: #C08A5E; border-color: #C08A5E; color: #fff; }
+  .ex-list { display: flex; flex-direction: column; gap: 7px; margin-top: 9px; }
+  .ex-row { display: flex; align-items: stretch; gap: 6px; }
+  .ex-input {
+    flex: 1 1 auto; min-width: 0; min-height: 40px; padding: 7px 12px;
+    border: 1px solid #EFE3D1; border-radius: 12px; background: #FFFDF9;
+    font-family: inherit; font-size: 16px; color: #3E3227; outline: none;
+  }
+  .ex-input:focus { border-color: #DCBC8E; box-shadow: 0 0 0 3px rgba(220, 188, 142, .18); }
+  .ex-del {
+    flex: 0 0 auto; width: 42px; border-radius: 12px;
+    border: 1px solid #EFE3D1; background: #FFFDF9; color: #B0715F; font-size: 14px;
+  }
+  .ex-del:active { background: #FBEAE4; }
+
+  /* ---------- 기본 문구 설정 ---------- */
+  .def-edit { margin-top: 9px; }
+  .def-input {
+    display: block; width: 100%; min-height: 42px; padding: 8px 12px;
+    border: 1px solid #DCBC8E; border-radius: 12px; background: #FFFDF9;
+    font-family: inherit; font-size: 16px; color: #3E3227; outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 188, 142, .18);
+  }
+  .def-actions { display: flex; align-items: center; gap: 6px; margin-top: 7px; }
+  .def-actions .mini.def-save {
+    background: linear-gradient(180deg, #C48E62, #A9703F);
+    border-color: transparent; color: #fff;
+  }
+  .def-actions .restore-link { margin-left: auto; }
+  #defaultTextNote { margin-top: 7px; line-height: 1.5; overflow-wrap: anywhere; }
+
   /* ---------- 문구 여러 개 ---------- */
   .msg-list { display: flex; flex-direction: column; gap: 9px; }
   .msg-item {
@@ -438,40 +472,33 @@
       <h2 class="h"><span>문구</span><span class="hint" id="msgCount" hidden></span></h2>
       <div class="msg-list" id="msgList"></div>
       <button class="msg-add" id="addMsg" type="button">＋ 문구 추가</button>
-      <div class="examples" id="examples">
-        <button class="ex" type="button">Happy Birthday</button>
-        <button class="ex" type="button">생일 축하해</button>
-        <button class="ex" type="button">사랑해</button>
-        <button class="ex" type="button">Merry Christmas</button>
-        <button class="ex" type="button">졸업 축하해</button>
-        <button class="ex" type="button">우리 딸 첫돌</button>
+      <div class="examples" id="examples"></div>
+      <div class="ex-list" id="exList" hidden></div>
+      <div class="ex-tools">
+        <button class="mini" id="editExamples" type="button" aria-pressed="false">예시 편집</button>
+        <button class="mini" id="editDefaultText" type="button" aria-pressed="false">기본 문구 설정</button>
+        <button class="mini" id="addExample" type="button" hidden>＋ 예시 추가</button>
+        <button class="restore-link" id="restoreExamples" type="button" hidden>기본 예시로 되돌리기</button>
       </div>
+      <div class="def-edit" id="defaultTextEdit" hidden>
+        <input class="def-input" id="defaultTextInput" type="text" maxlength="140" placeholder="처음 상태로 시작할 문구" aria-label="기본 문구">
+        <div class="def-actions">
+          <button class="mini def-save" id="defaultTextSave" type="button">저장</button>
+          <button class="mini" id="defaultTextCancel" type="button">취소</button>
+          <button class="restore-link" id="defaultTextReset" type="button" hidden>기본값으로</button>
+        </div>
+      </div>
+      <p class="mini-note" id="defaultTextNote"></p>
       <p class="msg-hint">문구 칸을 누르면 그 문구가 선택돼요. 글씨체·크기·곡률·위치는 선택된 문구에 적용돼요.</p>
     </section>
 
-    <section class="card">
-      <h2 class="h">
-        <span>글씨체</span>
-        <span class="h-tools">
-          <span class="hint" id="fontNote" hidden>한글 글자가 없어 기본체로 보여요</span>
-          <button class="mini edit-toggle" id="editDefaults" type="button" aria-pressed="false">편집</button>
-        </span>
-      </h2>
-      <div class="gsub" id="mineLabel" hidden>내 폰트</div>
+    <section class="card" id="myFontsCard">
+      <h2 class="h"><span>내 폰트</span></h2>
       <div class="mine-list" id="mineList" hidden></div>
-      <div class="gsub" id="importLabel">직접 불러오기</div>
       <div class="grid">
         <button class="chip add" id="addFont" type="button">+ 폰트 파일</button>
       </div>
-      <div class="restore-row">
-        <button class="restore-link" id="restoreDefaults" type="button" hidden>기본 폰트 다시 불러오기</button>
-      </div>
-      <div class="gsub" id="koLabel">한글</div>
-      <div class="grid" id="gridKo"></div>
-      <div class="gsub" id="enLabel">영문</div>
-      <div class="grid" id="gridEn"></div>
-      <p class="edit-note" id="editNote" hidden>지울 글씨체를 누르면 '삭제?'로 바뀌어요. 한 번 더 누르면 목록에서 사라지고, 아래에서 언제든 되돌릴 수 있어요.</p>
-      <p class="note">.ttf · .otf · .woff 파일을 고르면 바로 적용돼요. 불러온 폰트는 이 기기(브라우저)에 저장되어 새로 열어도 유지돼요. ✏️ 로 이름을 바꾸고 ✕ 로 지울 수 있어요. 기본 글씨체는 '편집'을 눌러 정리할 수 있어요.</p>
+      <p class="note">.ttf · .otf · .woff 파일을 고르면 바로 적용돼요. 불러온 폰트는 이 기기(브라우저)에 저장되어 새로 열어도 유지돼요. ✏️ 로 이름을 바꾸고 ✕ 로 지울 수 있어요.</p>
       <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden>
     </section>
 
@@ -544,6 +571,25 @@
         </div>
         <button class="switch" id="guide" type="button" role="switch" aria-checked="true" aria-label="원형 가이드"><span></span></button>
       </div>
+    </section>
+
+    <section class="card" id="defaultFontsCard">
+      <h2 class="h">
+        <span>기본 폰트</span>
+        <span class="h-tools">
+          <span class="hint" id="fontNote" hidden>한글 글자가 없어 기본체로 보여요</span>
+          <button class="mini edit-toggle" id="editDefaults" type="button" aria-pressed="false">편집</button>
+        </span>
+      </h2>
+      <div class="gsub" id="koLabel">한글</div>
+      <div class="grid" id="gridKo"></div>
+      <div class="gsub" id="enLabel">영문</div>
+      <div class="grid" id="gridEn"></div>
+      <div class="restore-row">
+        <button class="restore-link" id="restoreDefaults" type="button" hidden>기본 폰트 다시 불러오기</button>
+      </div>
+      <p class="edit-note" id="editNote" hidden>지울 글씨체를 누르면 '삭제?'로 바뀌어요. 한 번 더 누르면 목록에서 사라지고, 아래에서 언제든 되돌릴 수 있어요.</p>
+      <p class="note">기본 글씨체는 '편집'을 눌러 정리할 수 있어요. 정리한 글씨체는 '기본 폰트 다시 불러오기'로 되돌려요.</p>
     </section>
 
     <section class="card">
@@ -634,6 +680,38 @@
     bg: '#FFF6E3',
     guide: true
   };
+
+  /* ================= 처음 상태로 시작하는 기본 문구 =================
+     '처음 상태로' 를 누르거나 저장된 작업이 없을 때 들어가는 문구를 직접 정해 둘 수 있다.
+     고친 문구는 이 기기의 localStorage 에 남아 앱을 껐다 켜도 유지된다. */
+  var TEXT_KEY = 'buttertree-lettering-default-text';
+  var DEFAULT_TEXT = DEFAULT.text;
+  var defaultText = DEFAULT_TEXT;
+
+  function cleanDefaultText(v) {
+    var s = String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+    return s.slice(0, 140);
+  }
+
+  function shortDefaultText() {
+    return defaultText.length > 16 ? defaultText.slice(0, 16) + '…' : defaultText;
+  }
+
+  function readDefaultText() {
+    try {
+      var v = window.localStorage.getItem(TEXT_KEY);
+      if (v == null) return DEFAULT_TEXT;
+      return cleanDefaultText(v) || DEFAULT_TEXT;
+    } catch (e) { return DEFAULT_TEXT; }
+  }
+
+  function writeDefaultText(v) {
+    defaultText = v;
+    try {
+      if (v === DEFAULT_TEXT) window.localStorage.removeItem(TEXT_KEY);
+      else window.localStorage.setItem(TEXT_KEY, v);
+    } catch (e) { /* 저장소를 못 쓰는 환경에서는 이번 화면에서만 */ }
+  }
 
   /* 문구 여러 개를 각자의 글씨체·크기·곡률·위치로 그린다.
      state.items 안의 문구 하나가 그 설정을 모두 들고 있고,
@@ -844,6 +922,58 @@
       out.push(FONTS[i]);
     }
     return out;
+  }
+
+  /* ================= 예시 문구 (문구 입력 아래 칩) =================
+     기본으로 들어 있던 예시들을 직접 고치고·지우고·더할 수 있게 하고,
+     고친 목록은 localStorage 에 남긴다. 기본 목록으로 되돌리기도 함께 둔다. */
+  var EX_KEY = 'buttertree-lettering-examples';
+  var EX_DEFAULT = ['Happy Birthday', '생일 축하해', '사랑해', 'Merry Christmas', '졸업 축하해', '우리 딸 첫돌'];
+  var MAX_EXAMPLES = 24;
+  var MAX_EXAMPLE_LEN = 40;
+  var examples = EX_DEFAULT.slice();
+  var exEdit = false;
+  var exTimer = 0;
+
+  function cleanExample(v) {
+    return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, MAX_EXAMPLE_LEN);
+  }
+
+  function sameExamples(a, b) {
+    if (!a || !b || a.length !== b.length) return false;
+    for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+    return true;
+  }
+
+  function readExamples() {
+    try {
+      var raw = window.localStorage.getItem(EX_KEY);
+      if (raw == null) return EX_DEFAULT.slice();
+      var arr = JSON.parse(raw);
+      if (!arr || typeof arr.length !== 'number') return EX_DEFAULT.slice();
+      var out = [];
+      for (var i = 0; i < arr.length; i++) {
+        if (out.length >= MAX_EXAMPLES) break;
+        var s = cleanExample(arr[i]);
+        if (s) out.push(s);
+      }
+      return out;
+    } catch (e) { return EX_DEFAULT.slice(); }
+  }
+
+  function saveExamplesNow() {
+    if (exTimer) { clearTimeout(exTimer); exTimer = 0; }
+    var list = [];
+    for (var i = 0; i < examples.length; i++) list.push(String(examples[i] == null ? '' : examples[i]));
+    try {
+      if (sameExamples(list, EX_DEFAULT)) window.localStorage.removeItem(EX_KEY);
+      else window.localStorage.setItem(EX_KEY, JSON.stringify(list));
+    } catch (e) { /* 저장소를 못 쓰는 환경에서는 이번 화면에서만 */ }
+  }
+
+  function saveExamplesSoon() {
+    if (exTimer) return;
+    exTimer = setTimeout(function () { exTimer = 0; saveExamplesNow(); }, 150);
   }
 
   /* ================= DOM ================= */
@@ -1461,7 +1591,176 @@
   var chipArmTimer = 0;
 
   /* ================= 문구 칸 ================= */
-  var MSG_PLACEHOLDERS = ['예: 생일 축하해', '예: Happy Birthday', '예: 사랑해', '예: 축하해'];
+  var MSG_PLACEHOLDERS = ['예: Happy Birthday', '예: 사랑해', '예: 축하해'];
+
+  /* 첫 칸은 지금 정해 둔 기본 문구로 안내한다 */
+  function placeholderFor(idx) {
+    if (idx === 0) return '예: ' + shortDefaultText();
+    return MSG_PLACEHOLDERS[idx % MSG_PLACEHOLDERS.length];
+  }
+
+  function refreshPlaceholders() {
+    var tas = $('msgList').querySelectorAll('textarea');
+    for (var i = 0; i < tas.length; i++) tas[i].placeholder = placeholderFor(i);
+  }
+
+  /* ================= 예시 칩 그리기·편집 ================= */
+  function renderExampleChips() {
+    var box = $('examples');
+    box.textContent = '';
+    var shown = 0;
+    for (var i = 0; i < examples.length; i++) {
+      var t = cleanExample(examples[i]);
+      if (!t) continue;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ex';
+      b.textContent = t;
+      box.appendChild(b);
+      shown++;
+    }
+    box.hidden = exEdit || !shown;
+  }
+
+  function exampleRow(idx) {
+    var row = document.createElement('div');
+    row.className = 'ex-row';
+    row.dataset.idx = String(idx);
+
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'ex-input';
+    inp.maxLength = MAX_EXAMPLE_LEN;
+    inp.value = examples[idx] == null ? '' : examples[idx];
+    inp.placeholder = '예시 문구';
+    inp.setAttribute('aria-label', '예시 문구 ' + (idx + 1));
+    inp.addEventListener('input', function () {
+      examples[idx] = inp.value;
+      saveExamplesSoon();
+      syncExampleUI();
+    });
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); inp.blur(); }
+    });
+
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'ex-del';
+    del.textContent = '✕';
+    del.setAttribute('aria-label', '예시 문구 ' + (idx + 1) + ' 지우기');
+    del.addEventListener('click', function () {
+      examples.splice(idx, 1);
+      saveExamplesNow();
+      renderExamples();
+      toast('예시 문구를 지웠어요.');
+    });
+
+    row.appendChild(inp);
+    row.appendChild(del);
+    return row;
+  }
+
+  function renderExampleRows() {
+    var list = $('exList');
+    list.textContent = '';
+    if (!exEdit) { list.hidden = true; return; }
+    list.hidden = false;
+    for (var i = 0; i < examples.length; i++) list.appendChild(exampleRow(i));
+  }
+
+  function syncExampleUI() {
+    var btn = $('editExamples');
+    btn.textContent = exEdit ? '완료' : '예시 편집';
+    btn.setAttribute('aria-pressed', exEdit ? 'true' : 'false');
+    $('addExample').hidden = !exEdit;
+    $('restoreExamples').hidden = !exEdit || sameExamples(examples, EX_DEFAULT);
+  }
+
+  function renderExamples() {
+    renderExampleChips();
+    renderExampleRows();
+    syncExampleUI();
+  }
+
+  function toggleExamples() {
+    exEdit = !exEdit;
+    if (exEdit) closeDefaultTextEditor();
+    else {
+      /* 완료할 때 빈 칸은 거둔다 */
+      var kept = [];
+      for (var i = 0; i < examples.length; i++) {
+        var s = cleanExample(examples[i]);
+        if (s) kept.push(s);
+      }
+      examples = kept;
+      saveExamplesNow();
+    }
+    renderExamples();
+  }
+
+  function addExample() {
+    if (examples.length >= MAX_EXAMPLES) {
+      toast('예시는 ' + MAX_EXAMPLES + '개까지 둘 수 있어요.');
+      return;
+    }
+    examples.push('');
+    renderExamples();
+    var rows = $('exList').querySelectorAll('.ex-row');
+    var last = rows[rows.length - 1];
+    var inp = last ? last.querySelector('input') : null;
+    if (inp) { try { inp.focus(); } catch (e) {} }
+  }
+
+  function restoreExamples() {
+    examples = EX_DEFAULT.slice();
+    saveExamplesNow();
+    renderExamples();
+    toast('기본 예시로 되돌렸어요.');
+  }
+
+  /* ================= 기본 문구 설정 ================= */
+  function syncDefaultTextUI() {
+    var open = !$('defaultTextEdit').hidden;
+    $('editDefaultText').setAttribute('aria-pressed', open ? 'true' : 'false');
+    $('defaultTextNote').textContent =
+      "처음 상태로 누르면 '" + shortDefaultText() + "' 문구로 시작해요.";
+    $('defaultTextReset').hidden = defaultText === DEFAULT_TEXT;
+  }
+
+  function openDefaultTextEditor() {
+    var box = $('defaultTextEdit');
+    if (!box.hidden) { closeDefaultTextEditor(); return; }
+    if (exEdit) { exEdit = false; renderExamples(); }
+    $('defaultTextInput').value = defaultText;
+    box.hidden = false;
+    syncDefaultTextUI();
+    var inp = $('defaultTextInput');
+    setTimeout(function () { try { inp.focus(); inp.select(); } catch (e) {} }, 40);
+  }
+
+  function closeDefaultTextEditor() {
+    $('defaultTextEdit').hidden = true;
+    syncDefaultTextUI();
+  }
+
+  function commitDefaultText() {
+    var t = cleanDefaultText($('defaultTextInput').value);
+    if (!t) { toast('기본 문구를 입력해 주세요.'); return; }
+    writeDefaultText(t);
+    $('defaultTextEdit').hidden = true;
+    refreshPlaceholders();
+    syncDefaultTextUI();
+    toast("기본 문구를 '" + shortDefaultText() + "' 로 저장했어요. '처음 상태로' 에서 이 문구로 시작해요.");
+  }
+
+  function resetDefaultText() {
+    writeDefaultText(DEFAULT_TEXT);
+    $('defaultTextInput').value = DEFAULT_TEXT;
+    $('defaultTextEdit').hidden = true;
+    refreshPlaceholders();
+    syncDefaultTextUI();
+    toast("기본 문구를 '" + DEFAULT_TEXT + "' 로 되돌렸어요.");
+  }
 
   function metaText(it) {
     var f = fontFor(it);
@@ -1514,7 +1813,7 @@
     ta.maxLength = 140;
     ta.spellcheck = false;
     ta.value = it.text;
-    ta.placeholder = MSG_PLACEHOLDERS[idx % MSG_PLACEHOLDERS.length];
+    ta.placeholder = placeholderFor(idx);
     ta.setAttribute('aria-label', '문구 ' + (idx + 1));
     ta.addEventListener('input', function () {
       it.text = ta.value;
@@ -2469,15 +2768,12 @@
 
   function renderMineList() {
     var list = $('mineList');
-    var label = $('mineLabel');
     list.textContent = '';
     if (!customFonts.length) {
       editingId = null;
-      label.hidden = true;
       list.hidden = true;
       return;
     }
-    label.hidden = false;
     list.hidden = false;
     for (var i = 0; i < customFonts.length; i++) list.appendChild(mineRow(customFonts[i]));
   }
@@ -2500,6 +2796,21 @@
     });
 
     $('addMsg').addEventListener('click', addItem);
+
+    /* 예시 문구 편집·추가·되돌리기 */
+    $('editExamples').addEventListener('click', toggleExamples);
+    $('addExample').addEventListener('click', addExample);
+    $('restoreExamples').addEventListener('click', restoreExamples);
+
+    /* 처음 상태로 시작하는 기본 문구 설정 */
+    $('editDefaultText').addEventListener('click', openDefaultTextEditor);
+    $('defaultTextSave').addEventListener('click', commitDefaultText);
+    $('defaultTextCancel').addEventListener('click', closeDefaultTextEditor);
+    $('defaultTextReset').addEventListener('click', resetDefaultText);
+    $('defaultTextInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); commitDefaultText(); }
+      else if (e.key === 'Escape' || e.keyCode === 27) { closeDefaultTextEditor(); }
+    });
 
     $('examples').addEventListener('click', function (e) {
       var b = e.target.closest('.ex');
@@ -2594,7 +2905,7 @@
       endDrag(null);
 
       var start = fontById(DEFAULT.fontId) || firstAvailableFont();
-      var it = makeItem({ text: DEFAULT.text, size: DEFAULT.size, fontId: start ? start.id : '' });
+      var it = makeItem({ text: defaultText, size: DEFAULT.size, fontId: start ? start.id : '' });
       if (start && !start.custom) ensureFamily(start.family);
       writeLastSize(DEFAULT.size);
 
@@ -2632,6 +2943,8 @@
   /* ================= 시작 ================= */
   function init() {
     hiddenDefaults = loadHiddenDefaults();
+    defaultText = readDefaultText();
+    examples = readExamples();
     lastSize = readLastSize();
     storedSize = lastSize;
 
@@ -2648,13 +2961,15 @@
       preloadAll();
     } else {
       var start = fontById(DEFAULT.fontId) || firstAvailableFont();
-      var first = makeItem({ text: DEFAULT.text, size: lastSize, fontId: start ? start.id : '' });
+      var first = makeItem({ text: defaultText, size: lastSize, fontId: start ? start.id : '' });
       if (start && !start.custom) ensureFamily(start.family);
       state.items = [first];
       state.selId = first.id;
     }
 
     rebuildMessages();
+    renderExamples();
+    syncDefaultTextUI();
     renderFontGrids();
     renderSwatches();
     syncInputs();
