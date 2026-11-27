@@ -226,6 +226,19 @@
   .msg-del::after { content: ""; position: absolute; inset: -9px; border-radius: 50%; }
   .msg-del:active { background: #F6DDD4; }
   .msg-item textarea { min-height: 46px; }
+  /* 문구 칸의 '내용 지우기' — 오른쪽 위 ✕(문구 자체를 지우기)와 헷갈리지 않게 글자로 된 버튼 */
+  .msg-tools { display: flex; justify-content: flex-end; margin-top: 6px; }
+  .msg-clear {
+    min-height: 32px; padding: 5px 13px; border-radius: 999px;
+    border: 1px solid #EFE2D0; background: #FFFDF9;
+    font-size: 12px; font-weight: 600; letter-spacing: -.01em; color: #8A6A4C;
+    white-space: nowrap;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .msg-clear:active { background: #FBF1E2; }
+  .msg-clear:disabled {
+    color: #C9B8A4; border-color: #F3EADF; background: #FFFCF7; cursor: default;
+  }
   .msg-add {
     display: block; width: 100%; margin-top: 9px; padding: 10px 12px;
     border-radius: 14px; border: 1px dashed #DCC7AC; background: #FFFDF9;
@@ -1832,7 +1845,51 @@
 
     row.appendChild(top);
     row.appendChild(ta);
+
+    var tools = document.createElement('div');
+    tools.className = 'msg-tools';
+    var clr = document.createElement('button');
+    clr.type = 'button';
+    clr.className = 'msg-clear';
+    clr.textContent = '내용 지우기';
+    clr.setAttribute('aria-label', '문구 ' + (idx + 1) + ' 내용 지우기');
+    clr.addEventListener('click', function (e) {
+      e.stopPropagation();      /* 칸 선택은 clearItemText 가 직접 맞춘다 */
+      clearItemText(it.id);
+    });
+    tools.appendChild(clr);
+    row.appendChild(tools);
     return row;
+  }
+
+  /* 지금 문구 칸의 글자만 한 번에 비운다. 미리보기·요약·저장은 바로 반영하고
+     비운 입력란에 포커스를 줘서 그대로 이어서 칠 수 있게 한다. */
+  function clearItemText(id) {
+    var it = itemById(id);
+    if (!it) return;
+    var ta = textAreaFor(id);
+    var had = String(it.text == null ? '' : it.text).length > 0;
+    if (state.selId !== it.id) selectItem(it.id);
+    if (!had) {                       /* 이미 비어 있으면 지우지 않고 입력만 받는다 */
+      if (ta) focusTextArea(ta);
+      return;
+    }
+    it.text = '';
+    if (ta) ta.value = '';
+    syncMsgSel();
+    draw();
+    saveStateNow();                   /* 지운 것도 곧바로 저장한다 */
+    if (ta) focusTextArea(ta);
+    toast('문구 내용을 지웠어요.');
+  }
+
+  function focusTextArea(ta) {
+    try {
+      ta.focus({ preventScroll: false });
+      ta.setSelectionRange(0, 0);     /* 커서는 맨 앞에 */
+    } catch (e) {
+      try { ta.focus(); } catch (e2) {}
+    }
   }
 
   function rebuildMessages() {
@@ -1862,6 +1919,13 @@
       if (no) no.textContent = '문구 ' + (i + 1);
       var meta = row.querySelector('.msg-meta');
       if (meta) meta.textContent = metaText(it);
+
+      var clr = row.querySelector('.msg-clear');
+      if (clr) {
+        /* 비어 있으면 누를 것이 없으니 비활성 — 글자를 치면 바로 풀린다 */
+        clr.disabled = !String(it.text == null ? '' : it.text).length;
+        clr.setAttribute('aria-label', '문구 ' + (i + 1) + ' 내용 지우기');
+      }
 
       var ta = row.querySelector('textarea');
       if (ta) {
